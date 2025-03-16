@@ -2,6 +2,7 @@ package api
 
 import (
 	"casino_loyalty_reward_system/internal/api/handlers"
+	"casino_loyalty_reward_system/internal/component/promotions"
 	"casino_loyalty_reward_system/internal/component/users"
 	"net/http"
 
@@ -27,10 +28,12 @@ func (s *server) routes() http.Handler {
 	r.Use(handlers.LoggerMiddleware(s.Resource.Log))
 
 	usersComponent := users.New(s.Resource.DB, []byte(s.Resource.Config.JWTKey), s.Resource.Config.JWTDuration)
+	promotionsComponent := promotions.New(s.Resource.DB)
 
 	authMiddleware := handlers.AuthMiddleware(usersComponent)
 
 	usersRouter := handlers.NewAccountsRouter(usersComponent)
+	promotionsRouter := handlers.NewPromotionsRouter(promotionsComponent)
 
 	r.Route("/api/v1", func(r chi.Router) {
 
@@ -42,7 +45,16 @@ func (s *server) routes() http.Handler {
 				r.Get("/", usersRouter.GetUsers())
 				r.Get("/{id}", usersRouter.GetUser())
 				r.Put("/{id}", usersRouter.UpdateUser())
+				r.Put("/{id}/balance", usersRouter.UpdateBalance())
 				r.Delete("/{id}", usersRouter.DeleteUser())
+			})
+
+			r.Route("/promotions", func(r chi.Router) {
+				r.Post("/", promotionsRouter.CreatePromotion())
+				r.Get("/", promotionsRouter.GetPromotions())
+				r.Get("/{id}", promotionsRouter.GetPromotionByID())
+				r.Put("/{id}", promotionsRouter.UpdatePromotion())
+				r.Delete("/{id}", promotionsRouter.DeletePromotion())
 			})
 		})
 

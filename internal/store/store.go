@@ -23,14 +23,23 @@ type UserManager interface {
 	UserCreate(ctx context.Context, user types.User) (types.User, error)
 	UserGetBy(ctx context.Context, filter types.UserFilter) (types.User, error)
 	GetUsers(ctx context.Context) ([]types.User, error)
-	UpdateUser(ctx context.Context, user types.User) (types.User, error)
-	UpdateBalance(ctx context.Context, id uuid.UUID, newBalance float64) (types.User, error)
-	DeleteUser(ctx context.Context, id uuid.UUID) error
+	UserUpdate(ctx context.Context, user types.User) (types.User, error)
+	UserBalanceUpdate(ctx context.Context, id uuid.UUID, newBalance float64) (types.User, error)
+	UserDelete(ctx context.Context, id uuid.UUID) error
+}
+
+type PromotionManager interface {
+	PromotionCreate(ctx context.Context, promotion types.Promotion) (types.Promotion, error)
+	PromotionGetByID(ctx context.Context, uuid uuid.UUID) (types.Promotion, error)
+	GetPromotions(ctx context.Context) ([]types.Promotion, error)
+	PromotionUpdate(ctx context.Context, promotion types.Promotion) (types.Promotion, error)
+	PromotionDelete(ctx context.Context, id uuid.UUID) error
 }
 
 type Persistent interface {
 	Tx
 	UserManager
+	PromotionManager
 }
 
 type Cache interface {

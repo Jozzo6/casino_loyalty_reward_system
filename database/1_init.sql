@@ -13,7 +13,7 @@ CREATE TABLE users (
 	name TEXT NOT NULL,
 	email CITEXT UNIQUE NOT NULL,
 	password TEXT NOT NULL,
-	balance NUMBER DEFAULT 0,
+	balance DECIMAL DEFAULT 0,
 	role INTEGER DEFAULT 0,
 	created TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 	updated TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -26,10 +26,10 @@ CREATE TRIGGER users_modtime BEFORE UPDATE
 	FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 
 CREATE TABLE promotions (
-	promotion_id UUID PRIMARY KEY,
+	id UUID PRIMARY KEY,
 	title TEXT NOT NULL,
 	description TEXT,
-	amount NUMERIC NOT NULL,
+	amount DECIMAL NOT NULL,
 	is_active BOOLEAN,
 	created TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 	updated TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -42,7 +42,7 @@ CREATE TRIGGER promotions_modtime BEFORE UPDATE
 CREATE TABLE users_promotions (
 	id UUID PRIMARY KEY,
 	user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-	promotion_id UUID REFERENCES promotions(promotion_id) ON DELETE CASCADE,
+	promotion_id UUID REFERENCES promotions(id) ON DELETE CASCADE,
 	claimed TIMESTAMPTZ,
 	start_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 	end_date TIMESTAMPTZ NOT NULL,

@@ -131,7 +131,7 @@ func (c *component) Auth(ctx context.Context, token string, path string, method 
 }
 
 func (c *component) DeleteUser(ctx context.Context, userID uuid.UUID) error {
-	return c.persistent.DeleteUser(ctx, userID)
+	return c.persistent.UserDelete(ctx, userID)
 }
 
 func (c *component) GetUser(ctx context.Context, userID uuid.UUID) (types.User, error) {
@@ -143,7 +143,7 @@ func (c *component) GetUsers(ctx context.Context) ([]types.User, error) {
 }
 
 func (c *component) UpdateUser(ctx context.Context, user types.User) (types.User, error) {
-	return c.persistent.UpdateUser(ctx, user)
+	return c.persistent.UserUpdate(ctx, user)
 }
 
 func (c *component) UpdateUserBalance(ctx context.Context, user types.User, value float64, transacrionType types.TransactionType) (types.User, error) {
@@ -158,7 +158,7 @@ func (c *component) UpdateUserBalance(ctx context.Context, user types.User, valu
 		}
 	}
 
-	newUser, err := c.persistent.UpdateBalance(ctx, user.ID, newBalance)
+	newUser, err := c.persistent.UserBalanceUpdate(ctx, user.ID, newBalance)
 	return newUser, err
 }
 

@@ -128,7 +128,7 @@ func (q *Queries) GetUsers(ctx context.Context) ([]types.User, error) {
 	return users, rows.Err()
 }
 
-func (q *Queries) UpdateUser(ctx context.Context, user types.User) (types.User, error) {
+func (q *Queries) UserUpdate(ctx context.Context, user types.User) (types.User, error) {
 	query := `
 		UPDATE users SET
 			email = $1,
@@ -156,7 +156,7 @@ func (q *Queries) UpdateUser(ctx context.Context, user types.User) (types.User, 
 	return user, err
 }
 
-func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
+func (q *Queries) UserDelete(ctx context.Context, id uuid.UUID) error {
 	query := `DELETE FROM users WHERE id = $1`
 
 	res, err := q.db.Exec(
@@ -176,7 +176,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (q *Queries) UpdateBalance(ctx context.Context, id uuid.UUID, newBalance float64) (types.User, error) {
+func (q *Queries) UserBalanceUpdate(ctx context.Context, id uuid.UUID, newBalance float64) (types.User, error) {
 	query := `UPDATE users
 			SET balance = $1
 			WHERE id = $2 
