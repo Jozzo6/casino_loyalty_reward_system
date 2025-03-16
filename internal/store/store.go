@@ -7,6 +7,7 @@ import (
 
 	"casino_loyalty_reward_system/internal/types"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/redis/go-redis/v9"
@@ -22,6 +23,9 @@ type UserManager interface {
 	UserCreate(ctx context.Context, user types.User) (types.User, error)
 	UserGetBy(ctx context.Context, filter types.UserFilter) (types.User, error)
 	GetUsers(ctx context.Context) ([]types.User, error)
+	UpdateUser(ctx context.Context, user types.User) (types.User, error)
+	UpdateBalance(ctx context.Context, id uuid.UUID, newBalance float64) (types.User, error)
+	DeleteUser(ctx context.Context, id uuid.UUID) error
 }
 
 type Persistent interface {

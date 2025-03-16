@@ -5,6 +5,9 @@ import (
 	"context"
 	"fmt"
 	"strings"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 func (q *Queries) UserCreate(ctx context.Context, user types.User) (types.User, error) {
@@ -122,6 +125,92 @@ func (q *Queries) GetUsers(ctx context.Context) ([]types.User, error) {
 		users = append(users, user)
 	}
 
-	return users, err
+	return users, rows.Err()
 }
 
+func (q *Queries) UpdateUser(ctx context.Context, user types.User) (types.User, error) {
+	query := `
+		UPDATE users SET
+			email = $1,
+			name = $2,
+			role = $3
+		WHERE id = $4`
+
+	res, err := q.db.Exec(
+		ctx,
+		query,
+		user.Email,
+		user.Name,
+		user.Role,
+		user.ID,
+	)
+
+	if err != nil {
+		return user, err
+	}
+
+	if res.RowsAffected() == 0 {
+		return user, pgx.ErrNoRows
+	}
+
+	return user, err
+}
+
+func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
+	query := `DELETE FROM users WHERE id = $1`
+
+	res, err := q.db.Exec(
+		ctx,
+		query,
+		id,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if res.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
+
+	return nil
+}
+
+func (q *Queries) UpdateBalance(ctx context.Context, id uuid.UUID, newBalance float64) (types.User, error) {
+	query := `UPDATE users
+			SET balance = $1
+			WHERE id = $2 
+			RETURNING 
+				id, 
+				email, 
+				name, 
+				role, 
+				balance, 
+				created, 
+				updated`
+
+	var user types.User
+	err := q.db.QueryRow(
+		ctx,
+		query,
+		newBalance,
+		id,
+	).Scan(
+		&user.ID,
+		&user.Email,
+		&user.Name,
+		&user.Role,
+		&user.Balance,
+		&user.Created,
+		&user.Updated,
+	)
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return user, pgx.ErrNoRows
+		}
+		return user, err
+	}
+
+	return user, nil
+}

@@ -17,6 +17,7 @@ type User struct {
 	Email    string    `json:"email"`
 	Password string    `json:"password,omitempty"`
 	Role     UserType  `json:"role,omitempty" `
+	Balance  float64   `json:"balance"`
 	Created  time.Time `json:"created"`
 	Updated  time.Time `json:"updated"`
 }
@@ -27,4 +28,11 @@ const (
 	Admin UserType = iota
 	Staff
 	Player
+)
+
+type TransactionType string
+
+const (
+	Remove TransactionType = "remove"
+	Add    TransactionType = "add"
 )

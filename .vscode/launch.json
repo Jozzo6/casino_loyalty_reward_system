@@ -1,0 +1,27 @@
+{
+	// Use IntelliSense to learn about possible attributes.
+	// Hover to view descriptions of existing attributes.
+	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Debug Casino Loyalty Reward System",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/cmd",
+			"env": {
+				"SERVICE_NAME": "casino_loyalty_reward_system",
+				"PORT": "3001",
+				"DEV_MODE": "true",
+				"DB_URI": "postgres://tester:testing@localhost:5432/main",
+				"REDIS_URI": "redis://localhost:6379",
+				"JWT_KEY": "1d3cfaf9-b02c-4056-b00d-b3c97f340ffb",
+				"JWT_DURATION": "24h"
+			},
+			"args": [],
+			"buildFlags": "-tags=debug",
+			"showLog": true
+		}
+	]
+}

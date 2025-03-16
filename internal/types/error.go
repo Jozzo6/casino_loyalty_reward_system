@@ -7,5 +7,6 @@ type ErrorResponse struct {
 }
 
 var (
-	ErrUnauthorized = errors.New("Unauthorized")
+	ErrUnauthorized        = errors.New("Unauthorized")
+	ErrInsufficientBalance = errors.New("Insufficient balance")
 )

@@ -37,7 +37,13 @@ func (s *server) routes() http.Handler {
 		r.Post("/register", usersRouter.Register())
 		r.Post("/login", usersRouter.Login())
 
-		r.With(authMiddleware).Route("/users", func(r chi.Router) {
+		r.With(authMiddleware).Group(func(r chi.Router) {
+			r.Route("/users", func(r chi.Router) {
+				r.Get("/", usersRouter.GetUsers())
+				r.Get("/{id}", usersRouter.GetUser())
+				r.Put("/{id}", usersRouter.UpdateUser())
+				r.Delete("/{id}", usersRouter.DeleteUser())
+			})
 		})
 
 	})

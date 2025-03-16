@@ -17,36 +17,17 @@ type Provider interface {
 	Register(ctx context.Context, user types.User) (types.User, string, error)
 	Login(ctx context.Context, req types.User) (types.User, string, error)
 	Auth(ctx context.Context, token string, path string, method string) (types.User, error)
-	GetUsers(ctx context.Context) types.User
-	GetUser(ctx context.Context, userID uuid.UUID) types.User
-	UpdateUser(ctx context.Context, user types.User) types.User
-	DeleteUser(ctx context.Context, userID uuid.UUID) types.User
+	GetUsers(ctx context.Context) ([]types.User, error)
+	GetUser(ctx context.Context, userID uuid.UUID) (types.User, error)
+	UpdateUser(ctx context.Context, user types.User) (types.User, error)
+	UpdateUserBalance(ctx context.Context, user types.User, value float64, transacrionType types.TransactionType) (types.User, error)
+	DeleteUser(ctx context.Context, userID uuid.UUID) error
 }
 
 type component struct {
 	persistent  store.Persistent
 	jwtKey      []byte
 	jwtDuration time.Duration
-}
-
-// DeleteUser implements Provider.
-func (c *component) DeleteUser(ctx context.Context, userID uuid.UUID) types.User {
-	panic("unimplemented")
-}
-
-// GetUser implements Provider.
-func (c *component) GetUser(ctx context.Context, userID uuid.UUID) types.User {
-	panic("unimplemented")
-}
-
-// GetUsers implements Provider.
-func (c *component) GetUsers(ctx context.Context) types.User {
-	panic("unimplemented")
-}
-
-// UpdateUser implements Provider.
-func (c *component) UpdateUser(ctx context.Context, user types.User) types.User {
-	panic("unimplemented")
 }
 
 var _ Provider = (*component)(nil)
@@ -147,6 +128,38 @@ func (c *component) Auth(ctx context.Context, token string, path string, method 
 		Email: authClaims.Email,
 		Name:  authClaims.Name,
 	}, nil
+}
+
+func (c *component) DeleteUser(ctx context.Context, userID uuid.UUID) error {
+	return c.persistent.DeleteUser(ctx, userID)
+}
+
+func (c *component) GetUser(ctx context.Context, userID uuid.UUID) (types.User, error) {
+	return c.persistent.UserGetBy(ctx, types.UserFilter{ByID: uuid.NullUUID{UUID: userID, Valid: true}})
+}
+
+func (c *component) GetUsers(ctx context.Context) ([]types.User, error) {
+	return c.persistent.GetUsers(ctx)
+}
+
+func (c *component) UpdateUser(ctx context.Context, user types.User) (types.User, error) {
+	return c.persistent.UpdateUser(ctx, user)
+}
+
+func (c *component) UpdateUserBalance(ctx context.Context, user types.User, value float64, transacrionType types.TransactionType) (types.User, error) {
+	var newBalance float64
+
+	if transacrionType == types.Add {
+		newBalance = user.Balance + value
+	} else {
+		newBalance = user.Balance - value
+		if newBalance < 0 {
+			return types.User{}, types.ErrInsufficientBalance
+		}
+	}
+
+	newUser, err := c.persistent.UpdateBalance(ctx, user.ID, newBalance)
+	return newUser, err
 }
 
 func hashPassword(password string) (string, error) {
