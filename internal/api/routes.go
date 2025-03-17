@@ -27,7 +27,7 @@ func (s *server) routes() http.Handler {
 
 	r.Use(handlers.LoggerMiddleware(s.Resource.Log))
 
-	usersComponent := users.New(s.Resource.DB, []byte(s.Resource.Config.JWTKey), s.Resource.Config.JWTDuration)
+	usersComponent := users.New(s.Resource.DB, s.Resource.PubSub, []byte(s.Resource.Config.JWTKey), s.Resource.Config.JWTDuration)
 	promotionsComponent := promotions.New(s.Resource.DB)
 
 	authMiddleware := handlers.AuthMiddleware(usersComponent)
@@ -54,7 +54,7 @@ func (s *server) routes() http.Handler {
 				r.Delete("/{id}/promotions/{user_prom_id}", usersRouter.GetUserPromotionByID())
 			})
 
-			//27e9fe3e-ae99-4675-bb1d-cabf76294345
+			r.HandleFunc("/notifications", usersRouter.ListenToNotifications)
 
 			r.Route("/promotions", func(r chi.Router) {
 				r.Post("/", promotionsRouter.CreatePromotion())

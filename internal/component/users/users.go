@@ -2,12 +2,15 @@ package users
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/mail"
 	"time"
 
 	"casino_loyalty_reward_system/internal/store"
 	"casino_loyalty_reward_system/internal/types"
 
+	"github.com/coder/websocket"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -27,21 +30,25 @@ type Provider interface {
 	GetUserPromotionByID(ctx context.Context, userPromotionID uuid.UUID) (types.UserPromotion, error)
 	ClaimPromotion(ctx context.Context, userPromotionID uuid.UUID) error
 	DeleteUserPromotion(ctx context.Context, userPromotionID uuid.UUID) error
+	ListenToNotifications(ctx context.Context, conn *websocket.Conn, userID uuid.UUID) error
+	UserPing(ctx context.Context, conn *websocket.Conn, userID uuid.UUID) error
 }
 
 type component struct {
 	persistent  store.Persistent
+	pubsub      store.PubSub
 	jwtKey      []byte
 	jwtDuration time.Duration
 }
 
 var _ Provider = (*component)(nil)
 
-func New(persistent store.Persistent, jwtKey []byte, jwtDuration time.Duration) *component {
+func New(persistent store.Persistent, pubsub store.PubSub, jwtKey []byte, jwtDuration time.Duration) *component {
 	return &component{
 		persistent:  persistent,
 		jwtKey:      jwtKey,
 		jwtDuration: jwtDuration,
+		pubsub: pubsub,
 	}
 }
 
@@ -233,6 +240,49 @@ func (c *component) GetUserPromotionByID(ctx context.Context, userPromotionID uu
 
 func (c *component) GetUserPromotions(ctx context.Context, userPromotionID uuid.UUID) ([]types.UserPromotion, error) {
 	return c.persistent.GetUserPromotions(ctx, userPromotionID)
+}
+
+func (c *component) ListenToNotifications(ctx context.Context, conn *websocket.Conn,  userID uuid.UUID) error {
+	sub := c.pubsub.Subscribe(ctx, fmt.Sprintf("notifications:%s", userID))
+
+	defer sub.Close()
+
+	ch := sub.Channel()
+
+	for msg := range ch {
+		err := conn.Write(ctx, websocket.MessageText, []byte(msg.Payload))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *component) UserPing(ctx context.Context, conn *websocket.Conn, userID uuid.UUID) error {
+	for {
+		msgType, rdr, err := conn.Reader(ctx)
+		if err == nil {
+			if msgType == websocket.MessageText {
+				var msg types.LiveMessage
+				err := json.NewDecoder(rdr).Decode(&msg)
+				if err != nil {
+					conn.Close(websocket.StatusNormalClosure, "")
+				}
+
+				if msg.MessageType == "user_ping" {
+					c.pubsub.Publish(
+						ctx,
+						fmt.Sprintf("notifications:%s", userID),
+						types.LiveMessage{
+							MessageType: "user_ping",
+							SentByID:    userID,
+						},
+					)
+				}
+			}
+		}
+	}
 }
 
 func hashPassword(password string) (string, error) {

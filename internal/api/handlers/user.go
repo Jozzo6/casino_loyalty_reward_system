@@ -10,6 +10,7 @@ import (
 	"casino_loyalty_reward_system/internal/types"
 	utils "casino_loyalty_reward_system/internal/util"
 
+	"github.com/coder/websocket"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -405,4 +406,31 @@ func (ur *usersRouter) ClaimPromotion() http.HandlerFunc {
 
 		WriteJSON(log, w, http.StatusOK, "ok")
 	}
+}
+
+func (ur *usersRouter) ListenToNotifications(w http.ResponseWriter, r *http.Request) {
+	log := types.GetLoggerFromContext(r.Context())
+
+	user, err := types.GetAccountFromContext(r.Context())
+	if err != nil {
+		log.Errorf("failed to get user from context: %s", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	conn, err := websocket.Accept(w, r, nil)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	defer conn.CloseNow()
+
+	go func() {
+		ur.component.ListenToNotifications(r.Context(), conn, user.ID)
+	}()
+
+	ur.component.UserPing(r.Context(), conn, user.ID)
+
+	conn.Close(websocket.StatusNormalClosure, "")
 }
