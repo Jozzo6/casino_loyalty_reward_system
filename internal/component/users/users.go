@@ -22,6 +22,11 @@ type Provider interface {
 	UpdateUser(ctx context.Context, user types.User) (types.User, error)
 	UpdateUserBalance(ctx context.Context, user types.User, value float64, transacrionType types.TransactionType) (types.User, error)
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
+	AddPromotion(ctx context.Context, userPromotion types.UserPromotion) (types.UserPromotion, error)
+	GetUserPromotions(ctx context.Context, userID uuid.UUID) ([]types.UserPromotion, error)
+	GetUserPromotionByID(ctx context.Context, userPromotionID uuid.UUID) (types.UserPromotion, error)
+	ClaimPromotion(ctx context.Context, userPromotionID uuid.UUID) error
+	DeleteUserPromotion(ctx context.Context, userPromotionID uuid.UUID) error
 }
 
 type component struct {
@@ -160,6 +165,74 @@ func (c *component) UpdateUserBalance(ctx context.Context, user types.User, valu
 
 	newUser, err := c.persistent.UserBalanceUpdate(ctx, user.ID, newBalance)
 	return newUser, err
+}
+
+func (c *component) AddPromotion(ctx context.Context, userPromotion types.UserPromotion) (types.UserPromotion, error) {
+	userPromotion.ID = uuid.New()
+
+	if userPromotion.StartDate.After(userPromotion.EndDate) {
+		return types.UserPromotion{}, types.ErrStartAfterEndDate
+	}
+
+	promotion, err := c.persistent.PromotionGetByID(ctx, userPromotion.PromotionID)
+	if err != nil {
+		return types.UserPromotion{}, err
+	}
+
+	if !promotion.IsActive {
+		return types.UserPromotion{}, types.ErrPromotionNoLongerActive
+	}
+
+	return c.persistent.AddPromotion(ctx, userPromotion)
+
+}
+
+func (c *component) ClaimPromotion(ctx context.Context, userPromotionID uuid.UUID) error {
+	userPromotion, err := c.persistent.GetUserPromotionByID(ctx, userPromotionID)
+	if err != nil {
+		return err
+	}
+
+	if userPromotion.Claimed != nil {
+		return types.ErrPromotionClaimed
+	}
+
+	if !userPromotion.Promotion.IsActive {
+		return types.ErrPromotionNoLongerActive
+	}
+
+	if time.Now().Before(userPromotion.StartDate) {
+		return types.ErrPromotionNotStarted
+	}
+
+	if time.Now().After(userPromotion.EndDate) {
+		return types.ErrPromotionExpired
+	}
+
+	err = c.persistent.ClaimPromotion(ctx, userPromotion.ID)
+	if err != nil {
+		return err
+	}
+
+	user, err := c.persistent.UserGetBy(ctx, types.UserFilter{ByID: uuid.NullUUID{UUID: userPromotion.UserID, Valid: true}})
+	if err != nil {
+		return err
+	}
+
+	_, err = c.UpdateUserBalance(ctx, user, userPromotion.Promotion.Amount, types.Add)
+	return err
+}
+
+func (c *component) DeleteUserPromotion(ctx context.Context, userPromotionID uuid.UUID) error {
+	return c.persistent.DeleteUserPromotion(ctx, userPromotionID)
+}
+
+func (c *component) GetUserPromotionByID(ctx context.Context, userPromotionID uuid.UUID) (types.UserPromotion, error) {
+	return c.persistent.GetUserPromotionByID(ctx, userPromotionID)
+}
+
+func (c *component) GetUserPromotions(ctx context.Context, userPromotionID uuid.UUID) ([]types.UserPromotion, error) {
+	return c.persistent.GetUserPromotions(ctx, userPromotionID)
 }
 
 func hashPassword(password string) (string, error) {

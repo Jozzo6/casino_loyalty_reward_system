@@ -47,7 +47,14 @@ func (s *server) routes() http.Handler {
 				r.Put("/{id}", usersRouter.UpdateUser())
 				r.Put("/{id}/balance", usersRouter.UpdateBalance())
 				r.Delete("/{id}", usersRouter.DeleteUser())
+				r.Post("/{id}/promotions", usersRouter.AddPromotion())
+				r.Get("/{id}/promotions", usersRouter.GetUserPromotions())
+				r.Get("/{id}/promotions/{user_prom_id}", usersRouter.GetUserPromotionByID())
+				r.Put("/{id}/promotions/{user_prom_id}/claim", usersRouter.ClaimPromotion())
+				r.Delete("/{id}/promotions/{user_prom_id}", usersRouter.GetUserPromotionByID())
 			})
+
+			//27e9fe3e-ae99-4675-bb1d-cabf76294345
 
 			r.Route("/promotions", func(r chi.Router) {
 				r.Post("/", promotionsRouter.CreatePromotion())

@@ -1,4 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS citext;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE OR REPLACE FUNCTION update_modified_column()
 	RETURNS trigger LANGUAGE plpgsql AS $function$
@@ -31,6 +32,7 @@ CREATE TABLE promotions (
 	description TEXT,
 	amount DECIMAL NOT NULL,
 	is_active BOOLEAN,
+	type TEXT NOT NULL DEFAULT 'regular',
 	created TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 	updated TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

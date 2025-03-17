@@ -259,3 +259,150 @@ func (ur *usersRouter) UpdateBalance() http.HandlerFunc {
 
 	}
 }
+
+func (ur *usersRouter) AddPromotion() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req types.UserPromotion
+
+		log := types.GetLoggerFromContext(r.Context())
+
+		err := json.NewDecoder(r.Body).Decode(&req)
+		if err != nil {
+			WriteError(log, w, http.StatusBadRequest, err)
+			return
+		}
+
+		if errs := utils.Validator.Struct(req); errs != nil {
+			WriteError(log, w, http.StatusBadRequest, errs)
+			return
+		}
+
+		userPromotion, err := ur.component.AddPromotion(r.Context(), req)
+		if err != nil {
+			log.Errorf("failed to add promotion to user: %s", err)
+			if errors.Is(err, types.ErrStartAfterEndDate) ||
+				errors.Is(err, types.ErrPromotionNoLongerActive) {
+				WriteError(log, w, http.StatusBadRequest, err)
+			}
+			WriteError(log, w, http.StatusInternalServerError, err)
+			return
+		}
+
+		WriteJSON(log, w, http.StatusOK, userPromotion)
+	}
+}
+
+func (ur *usersRouter) GetUserPromotionByID() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log := types.GetLoggerFromContext(r.Context())
+
+		userPromotionID, err := uuid.Parse(chi.URLParam(r, "user_prom_id"))
+		if err != nil {
+			log.Errorf("failed to get user promotion id: %s", err)
+			WriteError(log, w, http.StatusBadRequest, err)
+			return
+		}
+
+		userPromotion, err := ur.component.GetUserPromotionByID(r.Context(), userPromotionID)
+		if err != nil {
+			WriteError(log, w, http.StatusInternalServerError, err)
+			return
+		}
+
+		WriteJSON(log, w, http.StatusOK, userPromotion)
+	}
+}
+
+func (ur *usersRouter) GetUserPromotions() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log := types.GetLoggerFromContext(r.Context())
+
+		userID, err := uuid.Parse(chi.URLParam(r, "id"))
+		if err != nil {
+			log.Errorf("failed to get user id: %s", err)
+			WriteError(log, w, http.StatusBadRequest, err)
+			return
+		}
+
+		userPromotion, err := ur.component.GetUserPromotions(r.Context(), userID)
+		if err != nil {
+			WriteError(log, w, http.StatusInternalServerError, err)
+			return
+		}
+
+		WriteJSON(log, w, http.StatusOK, userPromotion)
+	}
+}
+
+func (ur *usersRouter) DeleteUserPromotion() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log := types.GetLoggerFromContext(r.Context())
+
+		userPromotionID, err := uuid.Parse(chi.URLParam(r, "user_prom_id"))
+		if err != nil {
+			log.Errorf("failed to get user promotion id: %s", err)
+			WriteError(log, w, http.StatusBadRequest, err)
+			return
+		}
+
+		err = ur.component.DeleteUserPromotion(r.Context(), userPromotionID)
+		if err != nil {
+			WriteError(log, w, http.StatusInternalServerError, err)
+			return
+		}
+
+		WriteJSON(log, w, http.StatusOK, "ok")
+	}
+}
+func (ur *usersRouter) ClaimPromotion() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log := types.GetLoggerFromContext(r.Context())
+
+		userID, err := uuid.Parse(chi.URLParam(r, "id"))
+		if err != nil {
+			log.Errorf("failed to get user id: %s", err)
+			WriteError(log, w, http.StatusBadRequest, err)
+			return
+		}
+
+		user, err := types.GetAccountFromContext(r.Context())
+		if err != nil {
+			log.Errorf("failed to get user from context: %s", err)
+			WriteError(log, w, http.StatusBadRequest, err)
+			return
+		}
+
+		if userID != user.ID {
+			log.Error("requestor account ID and path user id not matchting")
+			WriteError(log, w, http.StatusBadRequest, types.ErrRequestorIDNotMatching)
+			return
+		}
+
+		userPromotionID, err := uuid.Parse(chi.URLParam(r, "user_prom_id"))
+		if err != nil {
+			log.Errorf("failed to get user promotion id: %s", err)
+			WriteError(log, w, http.StatusBadRequest, err)
+			return
+		}
+
+		err = ur.component.ClaimPromotion(r.Context(), userPromotionID)
+		if err != nil {
+			log.Errorf("failed to get claim promotion: %s", err)
+			if errors.Is(err, types.ErrPromotionNoLongerActive) ||
+				errors.Is(err, types.ErrPromotionExpired) ||
+				errors.Is(err, types.ErrPromotionNotStarted) ||
+				errors.Is(err, types.ErrPromotionClaimed) {
+				WriteError(log, w, http.StatusBadRequest, err)
+				return
+			}
+			if errors.Is(err, types.ErrRequestorIDNotMatching) {
+				WriteError(log, w, http.StatusForbidden, err)
+				return
+			}
+			WriteError(log, w, http.StatusInternalServerError, err)
+			return
+		}
+
+		WriteJSON(log, w, http.StatusOK, "ok")
+	}
+}

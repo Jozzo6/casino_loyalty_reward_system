@@ -26,6 +26,11 @@ type UserManager interface {
 	UserUpdate(ctx context.Context, user types.User) (types.User, error)
 	UserBalanceUpdate(ctx context.Context, id uuid.UUID, newBalance float64) (types.User, error)
 	UserDelete(ctx context.Context, id uuid.UUID) error
+	AddPromotion(ctx context.Context, userPromotion types.UserPromotion) (types.UserPromotion, error)
+	ClaimPromotion(ctx context.Context, userPromotionID uuid.UUID) error
+	GetUserPromotions(ctx context.Context, userID uuid.UUID) ([]types.UserPromotion, error)
+	GetUserPromotionByID(ctx context.Context, userPromotionID uuid.UUID) (types.UserPromotion, error)
+	DeleteUserPromotion(ctx context.Context, userPromotionID uuid.UUID) error
 }
 
 type PromotionManager interface {
@@ -40,9 +45,6 @@ type Persistent interface {
 	Tx
 	UserManager
 	PromotionManager
-}
-
-type Cache interface {
 }
 
 type PubSub interface {
