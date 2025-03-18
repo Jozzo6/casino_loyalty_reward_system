@@ -1,11 +1,12 @@
 package handlers
 
 import (
-	"casino_loyalty_reward_system/internal/component/users"
-	"casino_loyalty_reward_system/internal/types"
 	"context"
 	"net/http"
 	"strings"
+
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/component/users"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/types"
 
 	"go.uber.org/zap"
 )
@@ -53,4 +54,3 @@ func AuthMiddleware(component users.Provider) func(next http.Handler) http.Handl
 		})
 	}
 }
-

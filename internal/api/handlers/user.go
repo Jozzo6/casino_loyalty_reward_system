@@ -5,10 +5,10 @@ import (
 	"errors"
 	"net/http"
 
-	"casino_loyalty_reward_system/internal/component/users"
-	"casino_loyalty_reward_system/internal/store"
-	"casino_loyalty_reward_system/internal/types"
-	utils "casino_loyalty_reward_system/internal/util"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/component/users"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/store"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/types"
+	utils "github.com/Jozzo6/casino_loyalty_reward_system/internal/util"
 
 	"github.com/coder/websocket"
 	"github.com/go-chi/chi/v5"
@@ -424,13 +424,13 @@ func (ur *usersRouter) ListenToNotifications(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	conn.CloseRead(r.Context())
+
 	defer conn.CloseNow()
 
-	go func() {
-		ur.component.ListenToNotifications(r.Context(), conn, user.ID)
-	}()
+	err = ur.component.ListenToNotifications(r.Context(), conn, user.ID)
+	if err != nil {
+		log.Errorf("failed to listen to notificaitons: %s", err)
+	}
 
-	ur.component.UserPing(r.Context(), conn, user.ID)
-
-	conn.Close(websocket.StatusNormalClosure, "")
 }

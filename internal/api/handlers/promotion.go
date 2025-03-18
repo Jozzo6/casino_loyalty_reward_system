@@ -5,9 +5,9 @@ import (
 	"errors"
 	"net/http"
 
-	"casino_loyalty_reward_system/internal/component/promotions"
-	"casino_loyalty_reward_system/internal/types"
-	utils "casino_loyalty_reward_system/internal/util"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/component/promotions"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/types"
+	utils "github.com/Jozzo6/casino_loyalty_reward_system/internal/util"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"

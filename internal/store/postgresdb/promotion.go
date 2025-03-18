@@ -1,8 +1,9 @@
 package postgresdb
 
 import (
-	"casino_loyalty_reward_system/internal/types"
 	"context"
+
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/types"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -46,6 +47,36 @@ func (q *Queries) PromotionGetByID(ctx context.Context, id uuid.UUID) (types.Pro
 	)
 
 	err := q.db.QueryRow(ctx, query, id).Scan(
+		&promotion.ID,
+		&promotion.Title,
+		&promotion.Description,
+		&promotion.Amount,
+		&promotion.IsActive,
+		&promotion.Created,
+		&promotion.Updated,
+	)
+
+	return promotion, err
+}
+
+func (q *Queries) PromotionGetByType(ctx context.Context, promotionType types.PromotionType) (types.Promotion, error) {
+	var (
+		promotion types.Promotion
+		query     = `
+		SELECT 
+			id,
+			title,
+			description,
+			amount,
+			is_active,
+			created,
+			updated
+		FROM promotions 
+		WHERE type = $1
+		LIMIT 1`
+	)
+
+	err := q.db.QueryRow(ctx, query, promotionType).Scan(
 		&promotion.ID,
 		&promotion.Title,
 		&promotion.Description,

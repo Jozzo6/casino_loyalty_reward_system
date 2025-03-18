@@ -1,10 +1,11 @@
 package api
 
 import (
-	"casino_loyalty_reward_system/internal/api/handlers"
-	"casino_loyalty_reward_system/internal/component/promotions"
-	"casino_loyalty_reward_system/internal/component/users"
 	"net/http"
+
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/api/handlers"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/component/promotions"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/component/users"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"

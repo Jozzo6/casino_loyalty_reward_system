@@ -26,8 +26,7 @@ type User struct {
 type UserType int
 
 const (
-	Admin UserType = iota
-	Staff
+	Staff UserType = iota
 	Player
 )
 

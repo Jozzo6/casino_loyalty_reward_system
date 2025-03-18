@@ -1,4 +1,4 @@
-module casino_loyalty_reward_system
+module github.com/Jozzo6/casino_loyalty_reward_system
 
 go 1.24.1
 

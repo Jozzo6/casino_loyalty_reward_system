@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"casino_loyalty_reward_system/internal/api"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/api"
 )
 
 func main() {

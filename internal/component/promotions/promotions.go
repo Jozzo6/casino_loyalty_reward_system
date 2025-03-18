@@ -3,8 +3,8 @@ package promotions
 import (
 	"context"
 
-	"casino_loyalty_reward_system/internal/store"
-	"casino_loyalty_reward_system/internal/types"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/store"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/types"
 
 	"github.com/google/uuid"
 )

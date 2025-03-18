@@ -11,8 +11,3 @@ type AuthClaims struct {
 	Name  string    `json:"name"`
 	jwt.RegisteredClaims
 }
-
-// Valid implements jwt.Claims.
-func (a *AuthClaims) Valid() error {
-	panic("unimplemented")
-}

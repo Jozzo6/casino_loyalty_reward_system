@@ -2,13 +2,12 @@ package users
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/mail"
 	"time"
 
-	"casino_loyalty_reward_system/internal/store"
-	"casino_loyalty_reward_system/internal/types"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/store"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/types"
 
 	"github.com/coder/websocket"
 	"github.com/golang-jwt/jwt/v5"
@@ -26,12 +25,12 @@ type Provider interface {
 	UpdateUserBalance(ctx context.Context, user types.User, value float64, transacrionType types.TransactionType) (types.User, error)
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
 	AddPromotion(ctx context.Context, userPromotion types.UserPromotion) (types.UserPromotion, error)
+	AddWelcomePromotion(ctx context.Context, userID uuid.UUID) (types.UserPromotion, error)
 	GetUserPromotions(ctx context.Context, userID uuid.UUID) ([]types.UserPromotion, error)
 	GetUserPromotionByID(ctx context.Context, userPromotionID uuid.UUID) (types.UserPromotion, error)
 	ClaimPromotion(ctx context.Context, userPromotionID uuid.UUID) error
 	DeleteUserPromotion(ctx context.Context, userPromotionID uuid.UUID) error
 	ListenToNotifications(ctx context.Context, conn *websocket.Conn, userID uuid.UUID) error
-	UserPing(ctx context.Context, conn *websocket.Conn, userID uuid.UUID) error
 }
 
 type component struct {
@@ -48,7 +47,7 @@ func New(persistent store.Persistent, pubsub store.PubSub, jwtKey []byte, jwtDur
 		persistent:  persistent,
 		jwtKey:      jwtKey,
 		jwtDuration: jwtDuration,
-		pubsub: pubsub,
+		pubsub:      pubsub,
 	}
 }
 
@@ -86,6 +85,8 @@ func (c *component) Register(ctx context.Context, user types.User) (types.User, 
 	}
 
 	tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, authClaims).SignedString(c.jwtKey)
+
+	c.AddWelcomePromotion(ctx, user.ID)
 
 	return createdUser, tokenString, err
 }
@@ -190,12 +191,50 @@ func (c *component) AddPromotion(ctx context.Context, userPromotion types.UserPr
 		return types.UserPromotion{}, types.ErrPromotionNoLongerActive
 	}
 
-	return c.persistent.AddPromotion(ctx, userPromotion)
+	up, err := c.persistent.AddPromotion(ctx, userPromotion)
+	if err != nil {
+		return types.UserPromotion{}, err
+	}
 
+	c.pubsub.Publish(ctx, fmt.Sprintf("notifications:%s", userPromotion.UserID.String()), up)
+
+	return up, err
+}
+
+func (c *component) AddWelcomePromotion(ctx context.Context, userID uuid.UUID) (types.UserPromotion, error) {
+	promotion, err := c.persistent.PromotionGetByType(ctx, types.WelcomeBonus)
+	if err != nil {
+		return types.UserPromotion{}, err
+	}
+
+	if !promotion.IsActive {
+		return types.UserPromotion{}, types.ErrPromotionNoLongerActive
+	}
+
+	uP := types.UserPromotion{
+		ID:          uuid.New(),
+		UserID:      userID,
+		PromotionID: promotion.ID,
+		StartDate:   time.Now(),
+		EndDate:     time.Now().Add(24 * time.Hour),
+		Created:     time.Now(),
+		Updated:     time.Now(),
+	}
+
+	userPromotion, err := c.persistent.AddPromotion(ctx, uP)
+	if err != nil {
+		return types.UserPromotion{}, err
+	}
+
+	c.pubsub.Publish(ctx, fmt.Sprintf("notification:%s", userID.String()), userPromotion)
+
+	return userPromotion, err
 }
 
 func (c *component) ClaimPromotion(ctx context.Context, userPromotionID uuid.UUID) error {
-	userPromotion, err := c.persistent.GetUserPromotionByID(ctx, userPromotionID)
+	db, err := c.persistent.WithTx(ctx)
+
+	userPromotion, err := db.GetUserPromotionByID(ctx, userPromotionID)
 	if err != nil {
 		return err
 	}
@@ -216,15 +255,17 @@ func (c *component) ClaimPromotion(ctx context.Context, userPromotionID uuid.UUI
 		return types.ErrPromotionExpired
 	}
 
-	err = c.persistent.ClaimPromotion(ctx, userPromotion.ID)
+	err = db.ClaimPromotion(ctx, userPromotion.ID)
 	if err != nil {
 		return err
 	}
 
-	user, err := c.persistent.UserGetBy(ctx, types.UserFilter{ByID: uuid.NullUUID{UUID: userPromotion.UserID, Valid: true}})
+	user, err := db.UserGetBy(ctx, types.UserFilter{ByID: uuid.NullUUID{UUID: userPromotion.UserID, Valid: true}})
 	if err != nil {
 		return err
 	}
+
+	db.UserBalanceUpdate(ctx, user.ID, user.Balance+userPromotion.Promotion.Amount)
 
 	_, err = c.UpdateUserBalance(ctx, user, userPromotion.Promotion.Amount, types.Add)
 	return err
@@ -242,9 +283,8 @@ func (c *component) GetUserPromotions(ctx context.Context, userPromotionID uuid.
 	return c.persistent.GetUserPromotions(ctx, userPromotionID)
 }
 
-func (c *component) ListenToNotifications(ctx context.Context, conn *websocket.Conn,  userID uuid.UUID) error {
+func (c *component) ListenToNotifications(ctx context.Context, conn *websocket.Conn, userID uuid.UUID) error {
 	sub := c.pubsub.Subscribe(ctx, fmt.Sprintf("notifications:%s", userID))
-
 	defer sub.Close()
 
 	ch := sub.Channel()
@@ -257,32 +297,6 @@ func (c *component) ListenToNotifications(ctx context.Context, conn *websocket.C
 	}
 
 	return nil
-}
-
-func (c *component) UserPing(ctx context.Context, conn *websocket.Conn, userID uuid.UUID) error {
-	for {
-		msgType, rdr, err := conn.Reader(ctx)
-		if err == nil {
-			if msgType == websocket.MessageText {
-				var msg types.LiveMessage
-				err := json.NewDecoder(rdr).Decode(&msg)
-				if err != nil {
-					conn.Close(websocket.StatusNormalClosure, "")
-				}
-
-				if msg.MessageType == "user_ping" {
-					c.pubsub.Publish(
-						ctx,
-						fmt.Sprintf("notifications:%s", userID),
-						types.LiveMessage{
-							MessageType: "user_ping",
-							SentByID:    userID,
-						},
-					)
-				}
-			}
-		}
-	}
 }
 
 func hashPassword(password string) (string, error) {

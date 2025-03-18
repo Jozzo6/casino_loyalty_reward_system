@@ -1,10 +1,11 @@
 package postgresdb
 
 import (
-	"casino_loyalty_reward_system/internal/types"
 	"context"
 	"fmt"
 	"strings"
+
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/types"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"

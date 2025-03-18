@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"casino_loyalty_reward_system/internal/store"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/store"
 
 	"go.uber.org/zap"
 

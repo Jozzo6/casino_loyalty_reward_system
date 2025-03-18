@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"casino_loyalty_reward_system/internal/store"
-	"casino_loyalty_reward_system/internal/store/postgresdb"
-	"casino_loyalty_reward_system/internal/store/redis_pub_sub"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/store"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/store/postgresdb"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/store/redis_pub_sub"
 
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"

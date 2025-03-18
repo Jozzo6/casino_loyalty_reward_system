@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"casino_loyalty_reward_system/internal/types"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/types"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -36,6 +36,7 @@ type UserManager interface {
 type PromotionManager interface {
 	PromotionCreate(ctx context.Context, promotion types.Promotion) (types.Promotion, error)
 	PromotionGetByID(ctx context.Context, uuid uuid.UUID) (types.Promotion, error)
+	PromotionGetByType(ctx context.Context, promotionType types.PromotionType) (types.Promotion, error)
 	GetPromotions(ctx context.Context) ([]types.Promotion, error)
 	PromotionUpdate(ctx context.Context, promotion types.Promotion) (types.Promotion, error)
 	PromotionDelete(ctx context.Context, id uuid.UUID) error
