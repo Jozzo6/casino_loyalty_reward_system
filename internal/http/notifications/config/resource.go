@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Jozzo6/casino_loyalty_reward_system/internal/store"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/store/postgresdb"
 	"github.com/Jozzo6/casino_loyalty_reward_system/internal/store/redis_pub_sub"
 
 	"github.com/redis/go-redis/v9"
@@ -19,6 +20,7 @@ type Resource struct {
 	Config     *Config
 	Log        *zap.SugaredLogger
 	HTTPClient *http.Client
+	DB         store.Persistent
 	PubSub     store.PubSub
 	Close      func() error
 }
@@ -56,6 +58,13 @@ func InitResource(ctx context.Context) (*Resource, error) {
 		Timeout: 10 * time.Second,
 	}
 
+	pool, closer, err := postgresdb.PgxPool(ctx, r.Config.DatabaseURI)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize Postgres connection pool: %w", err)
+	}
+
+	r.DB = postgresdb.New(r.Log, pool)
+
 	redisOpt, err := redis.ParseURL(r.Config.RedisURI)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse Redis URI: %w", err)
@@ -72,6 +81,7 @@ func InitResource(ctx context.Context) (*Resource, error) {
 	r.Close = func() error {
 		return errors.Join(
 			redisClient.Close(),
+			closer(),
 		)
 	}
 

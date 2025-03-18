@@ -40,7 +40,7 @@ func AuthMiddleware(component users.Provider) func(next http.Handler) http.Handl
 			if len(parts) != 2 {
 				utils.WriteErrorMessage(log, w, http.StatusUnauthorized, "invalid token in header")
 				return
-			}
+			} 
 
 			if parts[0] != "Bearer" {
 				utils.WriteErrorMessage(log, w, http.StatusUnauthorized, "not token bearer")

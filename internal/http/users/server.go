@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Jozzo6/casino_loyalty_reward_system/internal/config"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/http/users/config"
 )
 
 type server struct {

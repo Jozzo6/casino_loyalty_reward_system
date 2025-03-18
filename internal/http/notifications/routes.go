@@ -35,6 +35,9 @@ func (s *server) routes() http.Handler {
 	notificationRouter := handlers.NewNotificationsRouter(usersComponent)
 
 	r.With(authMiddleware).Route("/api/v1", func(r chi.Router) {
+		r.HandleFunc("/ok", func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("ok"))
+		})
 		r.HandleFunc("/notifications", notificationRouter.ListenToNotifications)
 	})
 
