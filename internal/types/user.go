@@ -26,8 +26,8 @@ type User struct {
 type UserType int
 
 const (
-	Staff UserType = iota
-	Player
+	Player UserType = iota
+	Staff 
 )
 
 type TransactionType string

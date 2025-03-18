@@ -15,14 +15,42 @@ services:
     networks:
       - services
 
-  api:
+  user-service:
     build:
       context: ./
-      dockerfile: cmd/Dockerfile
+      dockerfile: cmd/user_service/Dockerfile
     deploy:
-      replicas: 4
+      replicas: 2
     env_file:
-      - docker.env
+      - user_service.env
+    restart: on-failure
+    depends_on:
+      - postgres
+    networks:
+      - services
+
+  notifications-service:
+    build:
+      context: ./
+      dockerfile: cmd/notifications_service/Dockerfile
+    deploy:
+      replicas: 2
+    env_file:
+      - notifications_service.env
+    restart: on-failure
+    depends_on:
+      - postgres
+    networks:
+      - services
+
+  promotions-service:
+    build:
+      context: ./
+      dockerfile: cmd/promotions_service/Dockerfile
+    deploy:
+      replicas: 2
+    env_file:
+      - promotions_service.env
     restart: on-failure
     depends_on:
       - postgres
@@ -39,7 +67,9 @@ services:
     networks:
       - services
     depends_on:
-      - api
+      - user-service
+      - notifications-service
+      - promotions-service
 
 networks:
   services:

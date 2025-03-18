@@ -30,22 +30,22 @@ func (pr *promotionsRouter) CreatePromotion() http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
-			WriteError(log, w, http.StatusBadRequest, err)
+			utils.WriteError(log, w, http.StatusBadRequest, err)
 			return
 		}
 
 		if errs := utils.Validator.Struct(req); errs != nil {
-			WriteError(log, w, http.StatusBadRequest, errs)
+			utils.WriteError(log, w, http.StatusBadRequest, errs)
 			return
 		}
 
 		promotion, err := pr.component.CreatePromotions(r.Context(), req)
 		if err != nil {
-			WriteError(log, w, http.StatusInternalServerError, err)
+			utils.WriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
 
-		WriteJSON(log, w, http.StatusOK, promotion)
+		utils.WriteJSON(log, w, http.StatusOK, promotion)
 
 	}
 }
@@ -57,22 +57,22 @@ func (pr *promotionsRouter) GetPromotionByID() http.HandlerFunc {
 		id, err := uuid.Parse(chi.URLParam(r, "id"))
 		if err != nil {
 			log.Errorf("failed to get promotion id: %s", err)
-			WriteError(log, w, http.StatusBadRequest, err)
+			utils.WriteError(log, w, http.StatusBadRequest, err)
 			return
 		}
 
 		user, err := pr.component.GetPromotionByID(r.Context(), id)
 		if errors.Is(err, pgx.ErrNoRows) {
 			log.Errorf("promotion with id: %s was not found: %s", id.String(), err)
-			WriteError(log, w, http.StatusNotFound, err)
+			utils.WriteError(log, w, http.StatusNotFound, err)
 			return
 		}
 		if err != nil {
-			WriteError(log, w, http.StatusInternalServerError, err)
+			utils.WriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
 
-		WriteJSON(log, w, http.StatusOK, user)
+		utils.WriteJSON(log, w, http.StatusOK, user)
 	}
 }
 
@@ -82,11 +82,11 @@ func (pr *promotionsRouter) GetPromotions() http.HandlerFunc {
 
 		users, err := pr.component.GetPromotions(r.Context())
 		if err != nil {
-			WriteError(log, w, http.StatusInternalServerError, err)
+			utils.WriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
 
-		WriteJSON(log, w, http.StatusOK, users)
+		utils.WriteJSON(log, w, http.StatusOK, users)
 	}
 }
 
@@ -98,22 +98,22 @@ func (pr *promotionsRouter) UpdatePromotion() http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
-			WriteError(log, w, http.StatusBadRequest, err)
+			utils.WriteError(log, w, http.StatusBadRequest, err)
 			return
 		}
 
 		if errs := utils.Validator.Struct(req); errs != nil {
-			WriteError(log, w, http.StatusBadRequest, errs)
+			utils.WriteError(log, w, http.StatusBadRequest, errs)
 			return
 		}
 
 		promotion, err := pr.component.UpdatePromotion(r.Context(), req)
 		if err != nil {
-			WriteError(log, w, http.StatusInternalServerError, err)
+			utils.WriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
 
-		WriteJSON(log, w, http.StatusOK, promotion)
+		utils.WriteJSON(log, w, http.StatusOK, promotion)
 
 	}
 }
@@ -125,21 +125,21 @@ func (pr *promotionsRouter) DeletePromotion() http.HandlerFunc {
 		id, err := uuid.Parse(chi.URLParam(r, "id"))
 		if err != nil {
 			log.Errorf("failed to get promotion id: %s", err)
-			WriteError(log, w, http.StatusBadRequest, err)
+			utils.WriteError(log, w, http.StatusBadRequest, err)
 			return
 		}
 
 		err = pr.component.DeletePromotion(r.Context(), id)
 		if errors.Is(err, pgx.ErrNoRows) {
 			log.Errorf("promotion with id: %s was not found to be deleted: %s", id.String(), err)
-			WriteError(log, w, http.StatusNotFound, err)
+			utils.WriteError(log, w, http.StatusNotFound, err)
 			return
 		}
 		if err != nil {
-			WriteError(log, w, http.StatusInternalServerError, err)
+			utils.WriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
 
-		WriteJSON(log, w, http.StatusOK, "OK")
+		utils.WriteJSON(log, w, http.StatusOK, "OK")
 	}
 }

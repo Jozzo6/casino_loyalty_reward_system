@@ -45,12 +45,12 @@ func (ur *usersRouter) Register() http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
-			WriteError(log, w, http.StatusBadRequest, err)
+			utils.WriteError(log, w, http.StatusBadRequest, err)
 			return
 		}
 
 		if errs := utils.Validator.Struct(req); errs != nil {
-			WriteError(log, w, http.StatusBadRequest, errs)
+			utils.WriteError(log, w, http.StatusBadRequest, errs)
 			return
 		}
 
@@ -61,14 +61,14 @@ func (ur *usersRouter) Register() http.HandlerFunc {
 		})
 
 		if store.IsErrConflict(err) {
-			WriteError(log, w, http.StatusConflict, err)
+			utils.WriteError(log, w, http.StatusConflict, err)
 			return
 		} else if err != nil {
-			WriteError(log, w, http.StatusInternalServerError, err)
+			utils.WriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
 
-		WriteJSON(log, w, http.StatusOK, RegisterResponse{
+		utils.WriteJSON(log, w, http.StatusOK, RegisterResponse{
 			ID:    createdUser.ID,
 			Name:  createdUser.Name,
 			Email: createdUser.Email,
@@ -97,12 +97,12 @@ func (ur *usersRouter) Login() http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
-			WriteError(log, w, http.StatusBadRequest, err)
+			utils.WriteError(log, w, http.StatusBadRequest, err)
 			return
 		}
 
 		if errs := utils.Validator.Struct(req); errs != nil {
-			WriteError(log, w, http.StatusBadRequest, errs)
+			utils.WriteError(log, w, http.StatusBadRequest, errs)
 			return
 		}
 
@@ -111,15 +111,15 @@ func (ur *usersRouter) Login() http.HandlerFunc {
 			Password: req.Password,
 		})
 		if errors.Is(err, types.ErrUnauthorized) {
-			WriteError(log, w, http.StatusUnauthorized, err)
+			utils.WriteError(log, w, http.StatusUnauthorized, err)
 			return
 		}
 		if err != nil {
-			WriteError(log, w, http.StatusInternalServerError, err)
+			utils.WriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
 
-		WriteJSON(log, w, http.StatusOK, RegisterResponse{
+		utils.WriteJSON(log, w, http.StatusOK, RegisterResponse{
 			ID:    user.ID,
 			Name:  user.Name,
 			Email: user.Email,
@@ -135,22 +135,22 @@ func (ur *usersRouter) GetUser() http.HandlerFunc {
 		id, err := uuid.Parse(chi.URLParam(r, "id"))
 		if err != nil {
 			log.Errorf("failed to get user id: %s", err)
-			WriteError(log, w, http.StatusBadRequest, err)
+			utils.WriteError(log, w, http.StatusBadRequest, err)
 			return
 		}
 
 		user, err := ur.component.GetUser(r.Context(), id)
 		if errors.Is(err, pgx.ErrNoRows) {
 			log.Errorf("user with id: %s was not found: %s", id.String(), err)
-			WriteError(log, w, http.StatusNotFound, err)
+			utils.WriteError(log, w, http.StatusNotFound, err)
 			return
 		}
 		if err != nil {
-			WriteError(log, w, http.StatusInternalServerError, err)
+			utils.WriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
 
-		WriteJSON(log, w, http.StatusOK, user)
+		utils.WriteJSON(log, w, http.StatusOK, user)
 	}
 }
 
@@ -160,11 +160,11 @@ func (ur *usersRouter) GetUsers() http.HandlerFunc {
 
 		users, err := ur.component.GetUsers(r.Context())
 		if err != nil {
-			WriteError(log, w, http.StatusInternalServerError, err)
+			utils.WriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
 
-		WriteJSON(log, w, http.StatusOK, users)
+		utils.WriteJSON(log, w, http.StatusOK, users)
 	}
 }
 
@@ -176,22 +176,22 @@ func (ur *usersRouter) UpdateUser() http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
-			WriteError(log, w, http.StatusBadRequest, err)
+			utils.WriteError(log, w, http.StatusBadRequest, err)
 			return
 		}
 
 		if errs := utils.Validator.Struct(req); errs != nil {
-			WriteError(log, w, http.StatusBadRequest, errs)
+			utils.WriteError(log, w, http.StatusBadRequest, errs)
 			return
 		}
 
 		user, err := ur.component.UpdateUser(r.Context(), req)
 		if err != nil {
-			WriteError(log, w, http.StatusInternalServerError, err)
+			utils.WriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
 
-		WriteJSON(log, w, http.StatusOK, user)
+		utils.WriteJSON(log, w, http.StatusOK, user)
 
 	}
 }
@@ -203,22 +203,22 @@ func (ur *usersRouter) DeleteUser() http.HandlerFunc {
 		id, err := uuid.Parse(chi.URLParam(r, "id"))
 		if err != nil {
 			log.Errorf("failed to get user id: %s", err)
-			WriteError(log, w, http.StatusBadRequest, err)
+			utils.WriteError(log, w, http.StatusBadRequest, err)
 			return
 		}
 
 		err = ur.component.DeleteUser(r.Context(), id)
 		if errors.Is(err, pgx.ErrNoRows) {
 			log.Errorf("user with id: %s was not found to be updated: %s", id.String(), err)
-			WriteError(log, w, http.StatusNotFound, err)
+			utils.WriteError(log, w, http.StatusNotFound, err)
 			return
 		}
 		if err != nil {
-			WriteError(log, w, http.StatusInternalServerError, err)
+			utils.WriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
 
-		WriteJSON(log, w, http.StatusOK, "OK")
+		utils.WriteJSON(log, w, http.StatusOK, "OK")
 	}
 }
 
@@ -235,28 +235,28 @@ func (ur *usersRouter) UpdateBalance() http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
-			WriteError(log, w, http.StatusBadRequest, err)
+			utils.WriteError(log, w, http.StatusBadRequest, err)
 			return
 		}
 
 		if errs := utils.Validator.Struct(req); errs != nil {
-			WriteError(log, w, http.StatusBadRequest, errs)
+			utils.WriteError(log, w, http.StatusBadRequest, errs)
 			return
 		}
 
 		us, err := types.GetAccountFromContext(r.Context())
 		if err != nil {
-			WriteError(log, w, http.StatusBadRequest, err)
+			utils.WriteError(log, w, http.StatusBadRequest, err)
 			return
 		}
 
 		user, err := ur.component.UpdateUserBalance(r.Context(), us, req.Value, req.TransactionType)
 		if err != nil {
-			WriteError(log, w, http.StatusInternalServerError, err)
+			utils.WriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
 
-		WriteJSON(log, w, http.StatusOK, user)
+		utils.WriteJSON(log, w, http.StatusOK, user)
 
 	}
 }

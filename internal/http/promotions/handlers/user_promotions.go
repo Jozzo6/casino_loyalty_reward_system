@@ -29,12 +29,12 @@ func (upr *userPromotionsRouter) AddPromotion() http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
-			WriteError(log, w, http.StatusBadRequest, err)
+			utils.WriteError(log, w, http.StatusBadRequest, err)
 			return
 		}
 
 		if errs := utils.Validator.Struct(req); errs != nil {
-			WriteError(log, w, http.StatusBadRequest, errs)
+			utils.WriteError(log, w, http.StatusBadRequest, errs)
 			return
 		}
 
@@ -43,13 +43,13 @@ func (upr *userPromotionsRouter) AddPromotion() http.HandlerFunc {
 			log.Errorf("failed to add promotion to user: %s", err)
 			if errors.Is(err, types.ErrStartAfterEndDate) ||
 				errors.Is(err, types.ErrPromotionNoLongerActive) {
-				WriteError(log, w, http.StatusBadRequest, err)
+				utils.WriteError(log, w, http.StatusBadRequest, err)
 			}
-			WriteError(log, w, http.StatusInternalServerError, err)
+			utils.WriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
 
-		WriteJSON(log, w, http.StatusOK, userPromotion)
+		utils.WriteJSON(log, w, http.StatusOK, userPromotion)
 	}
 }
 
@@ -60,17 +60,17 @@ func (upr *userPromotionsRouter) GetUserPromotionByID() http.HandlerFunc {
 		userPromotionID, err := uuid.Parse(chi.URLParam(r, "user_prom_id"))
 		if err != nil {
 			log.Errorf("failed to get user promotion id: %s", err)
-			WriteError(log, w, http.StatusBadRequest, err)
+			utils.WriteError(log, w, http.StatusBadRequest, err)
 			return
 		}
 
 		userPromotion, err := upr.component.GetUserPromotionByID(r.Context(), userPromotionID)
 		if err != nil {
-			WriteError(log, w, http.StatusInternalServerError, err)
+			utils.WriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
 
-		WriteJSON(log, w, http.StatusOK, userPromotion)
+		utils.WriteJSON(log, w, http.StatusOK, userPromotion)
 	}
 }
 
@@ -81,17 +81,17 @@ func (upr *userPromotionsRouter) GetUserPromotions() http.HandlerFunc {
 		userID, err := uuid.Parse(chi.URLParam(r, "user_id"))
 		if err != nil {
 			log.Errorf("failed to get user id: %s", err)
-			WriteError(log, w, http.StatusBadRequest, err)
+			utils.WriteError(log, w, http.StatusBadRequest, err)
 			return
 		}
 
 		userPromotion, err := upr.component.GetUserPromotions(r.Context(), userID)
 		if err != nil {
-			WriteError(log, w, http.StatusInternalServerError, err)
+			utils.WriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
 
-		WriteJSON(log, w, http.StatusOK, userPromotion)
+		utils.WriteJSON(log, w, http.StatusOK, userPromotion)
 	}
 }
 
@@ -102,17 +102,17 @@ func (upr *userPromotionsRouter) DeleteUserPromotion() http.HandlerFunc {
 		userPromotionID, err := uuid.Parse(chi.URLParam(r, "user_prom_id"))
 		if err != nil {
 			log.Errorf("failed to get user promotion id: %s", err)
-			WriteError(log, w, http.StatusBadRequest, err)
+			utils.WriteError(log, w, http.StatusBadRequest, err)
 			return
 		}
 
 		err = upr.component.DeleteUserPromotion(r.Context(), userPromotionID)
 		if err != nil {
-			WriteError(log, w, http.StatusInternalServerError, err)
+			utils.WriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
 
-		WriteJSON(log, w, http.StatusOK, "ok")
+		utils.WriteJSON(log, w, http.StatusOK, "ok")
 	}
 }
 func (upr *userPromotionsRouter) ClaimPromotion() http.HandlerFunc {
@@ -122,27 +122,27 @@ func (upr *userPromotionsRouter) ClaimPromotion() http.HandlerFunc {
 		userID, err := uuid.Parse(chi.URLParam(r, "user_id"))
 		if err != nil {
 			log.Errorf("failed to get user id: %s", err)
-			WriteError(log, w, http.StatusBadRequest, err)
+			utils.WriteError(log, w, http.StatusBadRequest, err)
 			return
 		}
 
 		user, err := types.GetAccountFromContext(r.Context())
 		if err != nil {
 			log.Errorf("failed to get user from context: %s", err)
-			WriteError(log, w, http.StatusBadRequest, err)
+			utils.WriteError(log, w, http.StatusBadRequest, err)
 			return
 		}
 
 		if userID != user.ID {
 			log.Error("requestor account ID and path user id not matchting")
-			WriteError(log, w, http.StatusBadRequest, types.ErrRequestorIDNotMatching)
+			utils.WriteError(log, w, http.StatusBadRequest, types.ErrRequestorIDNotMatching)
 			return
 		}
 
 		userPromotionID, err := uuid.Parse(chi.URLParam(r, "user_prom_id"))
 		if err != nil {
 			log.Errorf("failed to get user promotion id: %s", err)
-			WriteError(log, w, http.StatusBadRequest, err)
+			utils.WriteError(log, w, http.StatusBadRequest, err)
 			return
 		}
 
@@ -153,17 +153,17 @@ func (upr *userPromotionsRouter) ClaimPromotion() http.HandlerFunc {
 				errors.Is(err, types.ErrPromotionExpired) ||
 				errors.Is(err, types.ErrPromotionNotStarted) ||
 				errors.Is(err, types.ErrPromotionClaimed) {
-				WriteError(log, w, http.StatusBadRequest, err)
+				utils.WriteError(log, w, http.StatusBadRequest, err)
 				return
 			}
 			if errors.Is(err, types.ErrRequestorIDNotMatching) {
-				WriteError(log, w, http.StatusForbidden, err)
+				utils.WriteError(log, w, http.StatusForbidden, err)
 				return
 			}
-			WriteError(log, w, http.StatusInternalServerError, err)
+			utils.WriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
 
-		WriteJSON(log, w, http.StatusOK, "ok")
+		utils.WriteJSON(log, w, http.StatusOK, "ok")
 	}
 }

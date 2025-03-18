@@ -12,6 +12,7 @@ type ctxKey int
 const (
 	CtxKeyAccount ctxKey = iota
 	CtxKeyLogger
+	CtxUserRole
 )
 
 func GetLoggerFromContext(ctx context.Context) *zap.SugaredLogger {
@@ -31,4 +32,13 @@ func GetAccountFromContext(ctx context.Context) (User, error) {
 	}
 
 	return User{}, errors.New("user not in ctx")
+}
+
+func GetUserRoleFromContext(ctx context.Context) (UserType, error) {
+	userRole, ok := ctx.Value(CtxUserRole).(UserType)
+	if ok {
+		return userRole, nil
+	}
+
+	return 0, errors.New("failed to get user role from context")
 }

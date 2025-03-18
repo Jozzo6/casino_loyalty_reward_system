@@ -10,13 +10,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Jozzo6/casino_loyalty_reward_system/internal/api"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/http/users"
 )
 
 func main() {
 	ctx := context.Background()
-	log.Println("casino_loyalty_reward_system api: starting server...")
-	server, err := api.NewServer(ctx)
+	log.Println("casino_loyalty_reward_system user api: starting server...")
+	server, err := users.NewServer(ctx)
 	if err != nil {
 		log.Fatalf("failed to initialize api: %s", err)
 	}

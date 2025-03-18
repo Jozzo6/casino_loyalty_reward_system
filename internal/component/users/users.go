@@ -72,6 +72,7 @@ func (c *component) Register(ctx context.Context, user types.User) (types.User, 
 		ID:    user.ID,
 		Email: user.Email,
 		Name:  user.Name,
+		Role:  user.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.NewString(),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -80,8 +81,6 @@ func (c *component) Register(ctx context.Context, user types.User) (types.User, 
 	}
 
 	tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, authClaims).SignedString(c.jwtKey)
-
-	// c.AddWelcomePromotion(ctx, user.ID)
 
 	id, err := user.ID.MarshalBinary()
 	if err != nil {
@@ -115,6 +114,7 @@ func (c *component) Login(ctx context.Context, req types.User) (types.User, stri
 		ID:    user.ID,
 		Email: user.Email,
 		Name:  user.Name,
+		Role:  user.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.NewString(),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -142,6 +142,7 @@ func (c *component) Auth(ctx context.Context, token string, path string, method 
 		ID:    authClaims.ID,
 		Email: authClaims.Email,
 		Name:  authClaims.Name,
+		Role:  authClaims.Role,
 	}, nil
 }
 

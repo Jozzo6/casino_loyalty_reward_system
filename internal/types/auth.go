@@ -9,5 +9,6 @@ type AuthClaims struct {
 	ID    uuid.UUID `json:"id"`
 	Email string    `json:"email"`
 	Name  string    `json:"name"`
+	Role  UserType  `json:"role"`
 	jwt.RegisteredClaims
 }
