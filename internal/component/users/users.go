@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Jozzo6/casino_loyalty_reward_system/internal/store"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/store/redis_pub_sub"
 	"github.com/Jozzo6/casino_loyalty_reward_system/internal/types"
 
 	"github.com/coder/websocket"
@@ -24,12 +25,6 @@ type Provider interface {
 	UpdateUser(ctx context.Context, user types.User) (types.User, error)
 	UpdateUserBalance(ctx context.Context, user types.User, value float64, transacrionType types.TransactionType) (types.User, error)
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
-	AddPromotion(ctx context.Context, userPromotion types.UserPromotion) (types.UserPromotion, error)
-	AddWelcomePromotion(ctx context.Context, userID uuid.UUID) (types.UserPromotion, error)
-	GetUserPromotions(ctx context.Context, userID uuid.UUID) ([]types.UserPromotion, error)
-	GetUserPromotionByID(ctx context.Context, userPromotionID uuid.UUID) (types.UserPromotion, error)
-	ClaimPromotion(ctx context.Context, userPromotionID uuid.UUID) error
-	DeleteUserPromotion(ctx context.Context, userPromotionID uuid.UUID) error
 	ListenToNotifications(ctx context.Context, conn *websocket.Conn, userID uuid.UUID) error
 }
 
@@ -86,7 +81,14 @@ func (c *component) Register(ctx context.Context, user types.User) (types.User, 
 
 	tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, authClaims).SignedString(c.jwtKey)
 
-	c.AddWelcomePromotion(ctx, user.ID)
+	// c.AddWelcomePromotion(ctx, user.ID)
+
+	id, err := user.ID.MarshalBinary()
+	if err != nil {
+		return types.User{}, "", err
+	}
+
+	c.pubsub.Publish(ctx, redis_pub_sub.RegistrationChannel, id)
 
 	return createdUser, tokenString, err
 }
@@ -160,131 +162,14 @@ func (c *component) UpdateUser(ctx context.Context, user types.User) (types.User
 }
 
 func (c *component) UpdateUserBalance(ctx context.Context, user types.User, value float64, transacrionType types.TransactionType) (types.User, error) {
-	var newBalance float64
-
-	if transacrionType == types.Add {
-		newBalance = user.Balance + value
-	} else {
-		newBalance = user.Balance - value
-		if newBalance < 0 {
-			return types.User{}, types.ErrInsufficientBalance
-		}
+	if transacrionType == types.Remove && value > 0 {
+		value = value * -1
 	}
-
-	newUser, err := c.persistent.UserBalanceUpdate(ctx, user.ID, newBalance)
-	return newUser, err
-}
-
-func (c *component) AddPromotion(ctx context.Context, userPromotion types.UserPromotion) (types.UserPromotion, error) {
-	userPromotion.ID = uuid.New()
-
-	if userPromotion.StartDate.After(userPromotion.EndDate) {
-		return types.UserPromotion{}, types.ErrStartAfterEndDate
-	}
-
-	promotion, err := c.persistent.PromotionGetByID(ctx, userPromotion.PromotionID)
-	if err != nil {
-		return types.UserPromotion{}, err
-	}
-
-	if !promotion.IsActive {
-		return types.UserPromotion{}, types.ErrPromotionNoLongerActive
-	}
-
-	up, err := c.persistent.AddPromotion(ctx, userPromotion)
-	if err != nil {
-		return types.UserPromotion{}, err
-	}
-
-	c.pubsub.Publish(ctx, fmt.Sprintf("notifications:%s", userPromotion.UserID.String()), up)
-
-	return up, err
-}
-
-func (c *component) AddWelcomePromotion(ctx context.Context, userID uuid.UUID) (types.UserPromotion, error) {
-	promotion, err := c.persistent.PromotionGetByType(ctx, types.WelcomeBonus)
-	if err != nil {
-		return types.UserPromotion{}, err
-	}
-
-	if !promotion.IsActive {
-		return types.UserPromotion{}, types.ErrPromotionNoLongerActive
-	}
-
-	uP := types.UserPromotion{
-		ID:          uuid.New(),
-		UserID:      userID,
-		PromotionID: promotion.ID,
-		StartDate:   time.Now(),
-		EndDate:     time.Now().Add(24 * time.Hour),
-		Created:     time.Now(),
-		Updated:     time.Now(),
-	}
-
-	userPromotion, err := c.persistent.AddPromotion(ctx, uP)
-	if err != nil {
-		return types.UserPromotion{}, err
-	}
-
-	c.pubsub.Publish(ctx, fmt.Sprintf("notification:%s", userID.String()), userPromotion)
-
-	return userPromotion, err
-}
-
-func (c *component) ClaimPromotion(ctx context.Context, userPromotionID uuid.UUID) error {
-	db, err := c.persistent.WithTx(ctx)
-
-	userPromotion, err := db.GetUserPromotionByID(ctx, userPromotionID)
-	if err != nil {
-		return err
-	}
-
-	if userPromotion.Claimed != nil {
-		return types.ErrPromotionClaimed
-	}
-
-	if !userPromotion.Promotion.IsActive {
-		return types.ErrPromotionNoLongerActive
-	}
-
-	if time.Now().Before(userPromotion.StartDate) {
-		return types.ErrPromotionNotStarted
-	}
-
-	if time.Now().After(userPromotion.EndDate) {
-		return types.ErrPromotionExpired
-	}
-
-	err = db.ClaimPromotion(ctx, userPromotion.ID)
-	if err != nil {
-		return err
-	}
-
-	user, err := db.UserGetBy(ctx, types.UserFilter{ByID: uuid.NullUUID{UUID: userPromotion.UserID, Valid: true}})
-	if err != nil {
-		return err
-	}
-
-	db.UserBalanceUpdate(ctx, user.ID, user.Balance+userPromotion.Promotion.Amount)
-
-	_, err = c.UpdateUserBalance(ctx, user, userPromotion.Promotion.Amount, types.Add)
-	return err
-}
-
-func (c *component) DeleteUserPromotion(ctx context.Context, userPromotionID uuid.UUID) error {
-	return c.persistent.DeleteUserPromotion(ctx, userPromotionID)
-}
-
-func (c *component) GetUserPromotionByID(ctx context.Context, userPromotionID uuid.UUID) (types.UserPromotion, error) {
-	return c.persistent.GetUserPromotionByID(ctx, userPromotionID)
-}
-
-func (c *component) GetUserPromotions(ctx context.Context, userPromotionID uuid.UUID) ([]types.UserPromotion, error) {
-	return c.persistent.GetUserPromotions(ctx, userPromotionID)
+	return c.persistent.UserBalanceUpdate(ctx, user.ID, value)
 }
 
 func (c *component) ListenToNotifications(ctx context.Context, conn *websocket.Conn, userID uuid.UUID) error {
-	sub := c.pubsub.Subscribe(ctx, fmt.Sprintf("notifications:%s", userID))
+	sub := c.pubsub.Subscribe(ctx, fmt.Sprintf("%s:%s", redis_pub_sub.NotificationsChannel, userID))
 	defer sub.Close()
 
 	ch := sub.Channel()

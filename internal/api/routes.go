@@ -5,6 +5,7 @@ import (
 
 	"github.com/Jozzo6/casino_loyalty_reward_system/internal/api/handlers"
 	"github.com/Jozzo6/casino_loyalty_reward_system/internal/component/promotions"
+	userpromotion "github.com/Jozzo6/casino_loyalty_reward_system/internal/component/user_promotion"
 	"github.com/Jozzo6/casino_loyalty_reward_system/internal/component/users"
 
 	"github.com/go-chi/chi/v5"
@@ -30,11 +31,13 @@ func (s *server) routes() http.Handler {
 
 	usersComponent := users.New(s.Resource.DB, s.Resource.PubSub, []byte(s.Resource.Config.JWTKey), s.Resource.Config.JWTDuration)
 	promotionsComponent := promotions.New(s.Resource.DB)
+	userPromotionComponent := userpromotion.New(s.Resource.DB, s.Resource.PubSub)
 
 	authMiddleware := handlers.AuthMiddleware(usersComponent)
 
 	usersRouter := handlers.NewAccountsRouter(usersComponent)
 	promotionsRouter := handlers.NewPromotionsRouter(promotionsComponent)
+	userPromotionsRouter := handlers.NewUserPromotionsRouter(userPromotionComponent)
 
 	r.Route("/api/v1", func(r chi.Router) {
 
@@ -48,11 +51,14 @@ func (s *server) routes() http.Handler {
 				r.Put("/{id}", usersRouter.UpdateUser())
 				r.Put("/{id}/balance", usersRouter.UpdateBalance())
 				r.Delete("/{id}", usersRouter.DeleteUser())
-				r.Post("/{id}/promotions", usersRouter.AddPromotion())
-				r.Get("/{id}/promotions", usersRouter.GetUserPromotions())
-				r.Get("/{id}/promotions/{user_prom_id}", usersRouter.GetUserPromotionByID())
-				r.Put("/{id}/promotions/{user_prom_id}/claim", usersRouter.ClaimPromotion())
-				r.Delete("/{id}/promotions/{user_prom_id}", usersRouter.GetUserPromotionByID())
+			})
+
+			r.Route("/user_promotions", func(r chi.Router) {
+				r.Post("/{user_id}", userPromotionsRouter.AddPromotion())
+				r.Get("/{user_id}", userPromotionsRouter.GetUserPromotions())
+				r.Get("/{user_id}/promotion/{user_prom_id}", userPromotionsRouter.GetUserPromotionByID())
+				r.Put("/{user_id}/promotions/{user_prom_id}/claim", userPromotionsRouter.ClaimPromotion())
+				r.Delete("/{user_id}/promotions/{user_prom_id}", userPromotionsRouter.GetUserPromotionByID())
 			})
 
 			r.HandleFunc("/notifications", usersRouter.ListenToNotifications)

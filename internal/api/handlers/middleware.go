@@ -41,6 +41,11 @@ func AuthMiddleware(component users.Provider) func(next http.Handler) http.Handl
 				return
 			}
 
+			if parts[0] != "Bearer" {
+				WriteErrorMessage(log, w, http.StatusUnauthorized, "not token bearer")
+				return
+			}
+
 			account, err := component.Auth(ctx, parts[1], r.URL.Path, r.Method)
 			if err != nil {
 				log.Errorf("failed to auth user: %s", err)
