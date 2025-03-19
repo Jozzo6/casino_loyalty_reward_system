@@ -1,0 +1,1052 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/api/v1/login": {
+            "post": {
+                "description": "Authenticates a user and returns their details along with a token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Login a user",
+                "parameters": [
+                    {
+                        "description": "User login details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_http_users_handlers.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User logged in successfully",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http_users_handlers.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/notifications": {
+            "get": {
+                "description": "Establishes a WebSocket connection to receive real-time notifications for the authenticated user.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Listen to notifications",
+                "responses": {
+                    "101": {
+                        "description": "Switching Protocols - WebSocket connection established",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - User not authenticated",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/promotions": {
+            "get": {
+                "description": "Retrieve a list of all promotions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Promotions"
+                ],
+                "summary": "Get all promotions",
+                "responses": {
+                    "200": {
+                        "description": "List of promotions",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.Promotion"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new promotion with the provided details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Promotions"
+                ],
+                "summary": "Create a new promotion",
+                "parameters": [
+                    {
+                        "description": "Promotion details",
+                        "name": "promotion",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.Promotion"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Created promotion",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.Promotion"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/promotions/{id}": {
+            "get": {
+                "description": "Retrieve a promotion using its unique ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Promotions"
+                ],
+                "summary": "Get a promotion by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Promotion ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Retrieved promotion",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.Promotion"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Promotion not found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an existing promotion with the provided details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Promotions"
+                ],
+                "summary": "Update a promotion",
+                "parameters": [
+                    {
+                        "description": "Updated promotion details",
+                        "name": "promotion",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.Promotion"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated promotion",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.Promotion"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a promotion using its unique ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Promotions"
+                ],
+                "summary": "Delete a promotion",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Promotion ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Promotion not found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/register": {
+            "post": {
+                "description": "Creates a new user account and returns the user details along with a token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Register a new user",
+                "parameters": [
+                    {
+                        "description": "User registration details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_http_users_handlers.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User registered successfully",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http_users_handlers.RegisterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "User already exists",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user-promotions/{user_id}": {
+            "get": {
+                "description": "Retrieve a list of all promotions assigned to a specific user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Promotions"
+                ],
+                "summary": "Get all promotions for a user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of user promotions",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.UserPromotion"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Assign a promotion to a user with the provided details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Promotions"
+                ],
+                "summary": "Add a promotion to a user",
+                "parameters": [
+                    {
+                        "description": "User Promotion details",
+                        "name": "userPromotion",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.UserPromotion"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Added user promotion",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.UserPromotion"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input or business rule violation",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user-promotions/{user_id}/promotion/{user_prom_id}": {
+            "get": {
+                "description": "Retrieve a user promotion using its unique ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Promotions"
+                ],
+                "summary": "Get a user promotion by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User Promotion ID",
+                        "name": "user_prom_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Retrieved user promotion",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.UserPromotion"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User promotion not found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user-promotions/{user_id}/promotions/{user_prom_id}": {
+            "delete": {
+                "description": "Delete a user promotion using its unique ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Promotions"
+                ],
+                "summary": "Delete a user promotion",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User Promotion ID",
+                        "name": "user_prom_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/user-promotions/{user_id}/promotions/{user_prom_id}/claim": {
+            "post": {
+                "description": "Allows a user to claim a promotion if eligible",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Promotions"
+                ],
+                "summary": "Claim a promotion",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User Promotion ID",
+                        "name": "user_prom_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input or business rule violation",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Requestor ID does not match",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users": {
+            "get": {
+                "description": "Retrieves a list of all users.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get all users",
+                "responses": {
+                    "200": {
+                        "description": "List of users retrieved successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.User"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{id}": {
+            "get": {
+                "description": "Retrieves the details of a user by their unique ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get a user by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User details retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Updates the details of an existing user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update a user",
+                "parameters": [
+                    {
+                        "description": "User details to update",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes a user by their unique ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Delete a user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User deleted successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{id}/balance": {
+            "put": {
+                "description": "Updates the balance of a user based on the transaction type and value.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update user balance",
+                "parameters": [
+                    {
+                        "description": "Balance update details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_http_users_handlers.UpdateBalanceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User balance updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload or insufficient balance",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "github_com_Jozzo6_casino_loyalty_reward_system_internal_types.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Jozzo6_casino_loyalty_reward_system_internal_types.Promotion": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "created": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.PromotionType"
+                },
+                "updated": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Jozzo6_casino_loyalty_reward_system_internal_types.PromotionType": {
+            "type": "string",
+            "enum": [
+                "regular",
+                "welcome_bonus"
+            ],
+            "x-enum-varnames": [
+                "Regular",
+                "WelcomeBonus"
+            ]
+        },
+        "github_com_Jozzo6_casino_loyalty_reward_system_internal_types.TransactionType": {
+            "type": "string",
+            "enum": [
+                "remove",
+                "add"
+            ],
+            "x-enum-varnames": [
+                "TransactionTypeRemove",
+                "TransactionTypeAdd"
+            ]
+        },
+        "github_com_Jozzo6_casino_loyalty_reward_system_internal_types.User": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "number"
+                },
+                "created": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "promotions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.UserPromotion"
+                    }
+                },
+                "role": {
+                    "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.UserType"
+                },
+                "updated": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Jozzo6_casino_loyalty_reward_system_internal_types.UserPromotion": {
+            "type": "object",
+            "properties": {
+                "claimed": {
+                    "type": "string"
+                },
+                "created": {
+                    "type": "string"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "promotion": {
+                    "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.Promotion"
+                },
+                "promotion_id": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "updated": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.User"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Jozzo6_casino_loyalty_reward_system_internal_types.UserType": {
+            "type": "integer",
+            "enum": [
+                0,
+                1
+            ],
+            "x-enum-varnames": [
+                "Player",
+                "Staff"
+            ]
+        },
+        "internal_http_users_handlers.LoginRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 6
+                }
+            }
+        },
+        "internal_http_users_handlers.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_http_users_handlers.RegisterRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "name",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "minLength": 3
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 6
+                }
+            }
+        },
+        "internal_http_users_handlers.RegisterResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_http_users_handlers.UpdateBalanceRequest": {
+            "type": "object",
+            "required": [
+                "transaction_type",
+                "value"
+            ],
+            "properties": {
+                "transaction_type": {
+                    "$ref": "#/definitions/github_com_Jozzo6_casino_loyalty_reward_system_internal_types.TransactionType"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        }
+    }
+}

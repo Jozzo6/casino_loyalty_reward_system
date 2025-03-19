@@ -37,6 +37,18 @@ type RegisterResponse struct {
 	Token string    `json:"token"`
 }
 
+// Register handles user registration.
+// @Summary Register a new user
+// @Description Creates a new user account and returns the user details along with a token.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param request body RegisterRequest true "User registration details"
+// @Success 200 {object} RegisterResponse "User registered successfully"
+// @Failure 400 {object} types.ErrorResponse "Invalid request payload"
+// @Failure 409 {object} types.ErrorResponse "User already exists"
+// @Failure 500 {object} types.ErrorResponse "Internal server error"
+// @Router /api/v1/register [post]
 func (ur *usersRouter) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req RegisterRequest
@@ -89,6 +101,18 @@ type LoginResponse struct {
 	Token string    `json:"token"`
 }
 
+// Login handles user login.
+// @Summary Login a user
+// @Description Authenticates a user and returns their details along with a token.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param request body LoginRequest true "User login details"
+// @Success 200 {object} LoginResponse "User logged in successfully"
+// @Failure 400 {object} types.ErrorResponse "Invalid request payload"
+// @Failure 401 {object} types.ErrorResponse "Unauthorized"
+// @Failure 500 {object} types.ErrorResponse "Internal server error"
+// @Router /api/v1/login [post]
 func (ur *usersRouter) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req LoginRequest
@@ -128,6 +152,18 @@ func (ur *usersRouter) Login() http.HandlerFunc {
 	}
 }
 
+// GetUser retrieves a user by ID.
+// @Summary Get a user by ID
+// @Description Retrieves the details of a user by their unique ID.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} types.User "User details retrieved successfully"
+// @Failure 400 {object} types.ErrorResponse "Invalid user ID"
+// @Failure 404 {object} types.ErrorResponse "User not found"
+// @Failure 500 {object} types.ErrorResponse "Internal server error"
+// @Router /api/v1/users/{id} [get]
 func (ur *usersRouter) GetUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := types.GetLoggerFromContext(r.Context())
@@ -154,6 +190,15 @@ func (ur *usersRouter) GetUser() http.HandlerFunc {
 	}
 }
 
+// GetUsers retrieves all users.
+// @Summary Get all users
+// @Description Retrieves a list of all users.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Success 200 {array} types.User "List of users retrieved successfully"
+// @Failure 500 {object} types.ErrorResponse "Internal server error"
+// @Router /api/v1/users [get]
 func (ur *usersRouter) GetUsers() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := types.GetLoggerFromContext(r.Context())
@@ -168,6 +213,17 @@ func (ur *usersRouter) GetUsers() http.HandlerFunc {
 	}
 }
 
+// UpdateUser updates a user's details.
+// @Summary Update a user
+// @Description Updates the details of an existing user.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param request body types.User true "User details to update"
+// @Success 200 {object} types.User "User updated successfully"
+// @Failure 400 {object} types.ErrorResponse "Invalid request payload"
+// @Failure 500 {object} types.ErrorResponse "Internal server error"
+// @Router /api/v1/users/{id} [put]
 func (ur *usersRouter) UpdateUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.User
@@ -196,6 +252,18 @@ func (ur *usersRouter) UpdateUser() http.HandlerFunc {
 	}
 }
 
+// DeleteUser deletes a user by ID.
+// @Summary Delete a user
+// @Description Deletes a user by their unique ID.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {string} string "User deleted successfully"
+// @Failure 400 {object} types.ErrorResponse "Invalid user ID"
+// @Failure 404 {object} types.ErrorResponse "User not found"
+// @Failure 500 {object} types.ErrorResponse "Internal server error"
+// @Router /api/v1/users/{id} [delete]
 func (ur *usersRouter) DeleteUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := types.GetLoggerFromContext(r.Context())
@@ -227,6 +295,17 @@ type UpdateBalanceRequest struct {
 	TransactionType types.TransactionType `json:"transaction_type" validate:"required"`
 }
 
+// UpdateBalance updates a user's balance.
+// @Summary Update user balance
+// @Description Updates the balance of a user based on the transaction type and value.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param request body UpdateBalanceRequest true "Balance update details"
+// @Success 200 {object} types.User "User balance updated successfully"
+// @Failure 400 {object} types.ErrorResponse "Invalid request payload or insufficient balance"
+// @Failure 500 {object} types.ErrorResponse "Internal server error"
+// @Router /api/v1/users/{id}/balance [put]
 func (ur *usersRouter) UpdateBalance() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req UpdateBalanceRequest

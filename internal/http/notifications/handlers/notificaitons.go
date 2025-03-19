@@ -17,6 +17,15 @@ func NewNotificationsRouter(component notifications.NotificationProvider) *notif
 	return &notificationsRouter{component: component}
 }
 
+// ListenToNotifications establishes a WebSocket connection for real-time notifications.
+// @Summary Listen to notifications
+// @Description Establishes a WebSocket connection to receive real-time notifications for the authenticated user.
+// @Tags Notifications
+// @Produce json
+// @Success 101 {string} string "Switching Protocols - WebSocket connection established"
+// @Failure 401 {object} string "Unauthorized - User not authenticated"
+// @Failure 500 {object} string "Internal server error"
+// @Router /api/v1/notifications [get]
 func (nr *notificationsRouter) ListenToNotifications(w http.ResponseWriter, r *http.Request) {
 	log := types.GetLoggerFromContext(r.Context())
 

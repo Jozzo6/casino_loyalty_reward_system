@@ -6,6 +6,7 @@ import (
 	"github.com/Jozzo6/casino_loyalty_reward_system/internal/component/users"
 	"github.com/Jozzo6/casino_loyalty_reward_system/internal/http/middlewares"
 	"github.com/Jozzo6/casino_loyalty_reward_system/internal/http/users/handlers"
+	"github.com/Jozzo6/casino_loyalty_reward_system/internal/types"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -44,7 +45,7 @@ func (s *server) routes() http.Handler {
 				r.Get("/{id}", usersRouter.GetUser())
 				r.Put("/{id}", usersRouter.UpdateUser())
 				r.Put("/{id}/balance", usersRouter.UpdateBalance())
-				r.Delete("/{id}", usersRouter.DeleteUser())
+				r.With(middlewares.RequiredRole(types.Staff)).Delete("/{id}", usersRouter.DeleteUser())
 			})
 		})
 	})

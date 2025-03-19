@@ -22,6 +22,17 @@ func NewPromotionsRouter(component promotions.PromotionProvider) *promotionsRout
 	return &promotionsRouter{component: component}
 }
 
+// CreatePromotion handles the creation of a new promotion.
+// @Summary Create a new promotion
+// @Description Create a new promotion with the provided details
+// @Tags Promotions
+// @Accept json
+// @Produce json
+// @Param promotion body types.Promotion true "Promotion details"
+// @Success 200 {object} types.Promotion "Created promotion"
+// @Failure 400 {object} types.ErrorResponse "Invalid input"
+// @Failure 500 {object} types.ErrorResponse "Internal server error"
+// @Router /api/v1/promotions [post]
 func (pr *promotionsRouter) CreatePromotion() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.Promotion
@@ -50,6 +61,18 @@ func (pr *promotionsRouter) CreatePromotion() http.HandlerFunc {
 	}
 }
 
+// GetPromotionByID retrieves a promotion by its ID.
+// @Summary Get a promotion by ID
+// @Description Retrieve a promotion using its unique ID
+// @Tags Promotions
+// @Accept json
+// @Produce json
+// @Param id path string true "Promotion ID"
+// @Success 200 {object} types.Promotion "Retrieved promotion"
+// @Failure 400 {object} types.ErrorResponse "Invalid ID format"
+// @Failure 404 {object} types.ErrorResponse "Promotion not found"
+// @Failure 500 {object} types.ErrorResponse "Internal server error"
+// @Router /api/v1/promotions/{id} [get]
 func (pr *promotionsRouter) GetPromotionByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := types.GetLoggerFromContext(r.Context())
@@ -76,6 +99,15 @@ func (pr *promotionsRouter) GetPromotionByID() http.HandlerFunc {
 	}
 }
 
+// GetPromotions retrieves all promotions.
+// @Summary Get all promotions
+// @Description Retrieve a list of all promotions
+// @Tags Promotions
+// @Accept json
+// @Produce json
+// @Success 200 {array} types.Promotion "List of promotions"
+// @Failure 500 {object} types.ErrorResponse "Internal server error"
+// @Router /api/v1/promotions [get]
 func (pr *promotionsRouter) GetPromotions() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := types.GetLoggerFromContext(r.Context())
@@ -90,6 +122,17 @@ func (pr *promotionsRouter) GetPromotions() http.HandlerFunc {
 	}
 }
 
+// UpdatePromotion updates an existing promotion.
+// @Summary Update a promotion
+// @Description Update an existing promotion with the provided details
+// @Tags Promotions
+// @Accept json
+// @Produce json
+// @Param promotion body types.Promotion true "Updated promotion details"
+// @Success 200 {object} types.Promotion "Updated promotion"
+// @Failure 400 {object} types.ErrorResponse "Invalid input"
+// @Failure 500 {object} types.ErrorResponse "Internal server error"
+// @Router /api/v1/promotions/{id} [put]
 func (pr *promotionsRouter) UpdatePromotion() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.Promotion
@@ -118,6 +161,18 @@ func (pr *promotionsRouter) UpdatePromotion() http.HandlerFunc {
 	}
 }
 
+// DeletePromotion deletes a promotion by its ID.
+// @Summary Delete a promotion
+// @Description Delete a promotion using its unique ID
+// @Tags Promotions
+// @Accept json
+// @Produce json
+// @Param id path string true "Promotion ID"
+// @Success 200 {string} string "OK"
+// @Failure 400 {object} types.ErrorResponse "Invalid ID format"
+// @Failure 404 {object} types.ErrorResponse "Promotion not found"
+// @Failure 500 {object} types.ErrorResponse "Internal server error"
+// @Router /api/v1/promotions/{id} [delete]
 func (pr *promotionsRouter) DeletePromotion() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := types.GetLoggerFromContext(r.Context())
