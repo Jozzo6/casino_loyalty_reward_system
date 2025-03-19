@@ -79,12 +79,7 @@ func (c *component) Register(ctx context.Context, user types.User) (types.User, 
 
 	tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, authClaims).SignedString(c.jwtKey)
 
-	id, err := user.ID.MarshalBinary()
-	if err != nil {
-		return types.User{}, "", err
-	}
-
-	c.pubsub.Publish(ctx, redis_pub_sub.RegistrationChannel, id)
+	c.pubsub.Publish(ctx, redis_pub_sub.RegistrationChannel, user.ID.String())
 
 	return createdUser, tokenString, err
 }

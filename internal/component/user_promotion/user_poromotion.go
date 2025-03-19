@@ -18,6 +18,7 @@ type UserPromotionProvider interface {
 	GetUserPromotionByID(ctx context.Context, userPromotionID uuid.UUID) (types.UserPromotion, error)
 	ClaimPromotion(ctx context.Context, userPromotionID uuid.UUID) error
 	DeleteUserPromotion(ctx context.Context, userPromotionID uuid.UUID) error
+	ListenToRegisterEvent(ctx context.Context) error
 }
 
 type component struct {
@@ -28,10 +29,19 @@ type component struct {
 var _ UserPromotionProvider = (*component)(nil)
 
 func New(persistent store.Persistent, pubsub store.PubSub) *component {
-	return &component{
+	comp := &component{
 		persistent: persistent,
 		pubsub:     pubsub,
 	}
+
+	go func() {
+		err := comp.ListenToRegisterEvent(context.Background())
+		if err != nil {
+			fmt.Printf("error in ListenToRegisterEvent: %v", err)
+		}
+	}()
+
+	return comp
 }
 
 func (c *component) AddPromotion(ctx context.Context, userPromotion types.UserPromotion) (types.UserPromotion, error) {
@@ -138,4 +148,28 @@ func (c *component) GetUserPromotionByID(ctx context.Context, userPromotionID uu
 
 func (c *component) GetUserPromotions(ctx context.Context, userPromotionID uuid.UUID) ([]types.UserPromotion, error) {
 	return c.persistent.GetUserPromotions(ctx, userPromotionID)
+}
+
+func (c *component) ListenToRegisterEvent(ctx context.Context) error {
+	sub := c.pubsub.Subscribe(ctx, fmt.Sprintf(redis_pub_sub.RegistrationChannel))
+	defer sub.Close()
+
+	log := types.GetLoggerFromContext(ctx)
+
+	ch := sub.Channel()
+
+	for msg := range ch {
+		ID, err := uuid.Parse(msg.Payload)
+		if err != nil {
+			log.Errorf("failed to parse uuid: %s", err)
+			continue
+		}
+		_, err = c.AddWelcomePromotion(ctx, ID)
+		if err != nil {
+			log.Errorf("failed to add welcome promotion: %s", err)
+			continue
+		}
+	}
+
+	return nil
 }

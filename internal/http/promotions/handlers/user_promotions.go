@@ -167,3 +167,35 @@ func (upr *userPromotionsRouter) ClaimPromotion() http.HandlerFunc {
 		utils.WriteJSON(log, w, http.StatusOK, "ok")
 	}
 }
+
+func (upr *userPromotionsRouter) ListenToRegister() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req types.UserPromotion
+
+		log := types.GetLoggerFromContext(r.Context())
+
+		err := json.NewDecoder(r.Body).Decode(&req)
+		if err != nil {
+			utils.WriteError(log, w, http.StatusBadRequest, err)
+			return
+		}
+
+		if errs := utils.Validator.Struct(req); errs != nil {
+			utils.WriteError(log, w, http.StatusBadRequest, errs)
+			return
+		}
+
+		userPromotion, err := upr.component.AddPromotion(r.Context(), req)
+		if err != nil {
+			log.Errorf("failed to add promotion to user: %s", err)
+			if errors.Is(err, types.ErrStartAfterEndDate) ||
+				errors.Is(err, types.ErrPromotionNoLongerActive) {
+				utils.WriteError(log, w, http.StatusBadRequest, err)
+			}
+			utils.WriteError(log, w, http.StatusInternalServerError, err)
+			return
+		}
+
+		utils.WriteJSON(log, w, http.StatusOK, userPromotion)
+	}
+}
