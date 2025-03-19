@@ -11,6 +11,7 @@ import (
 	"github.com/Jozzo6/casino_loyalty_reward_system/internal/types"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
 )
 
@@ -75,7 +76,11 @@ func TestAddPromotion(t *testing.T) {
 						}, nil
 					},
 				},
-				pubsub: &fakes.FakePubSub{},
+				pubsub: &fakes.FakePubSub{
+					PublishStub: func(ctx context.Context, s string, a any) *redis.IntCmd {
+						return nil
+					},
+				},
 			},
 			args: args{
 				userPromotion: types.UserPromotion{
@@ -604,7 +609,6 @@ func TestClaimPromotion(t *testing.T) {
 							},
 						}, nil
 					},
-
 				},
 				tester: &fakes.FakeUserPromotionProvider{
 					ClaimPromotionStub: func(ctx context.Context, u uuid.UUID) error {
