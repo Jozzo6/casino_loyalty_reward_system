@@ -135,6 +135,11 @@ func (c *component) ClaimPromotion(ctx context.Context, userPromotionID uuid.UUI
 	}
 
 	_, err = db.UserBalanceUpdate(ctx, user.ID, userPromotion.Promotion.Amount)
+	if err != nil {
+		return err
+	}
+
+	err = db.CommitTx(ctx)
 	return err
 }
 

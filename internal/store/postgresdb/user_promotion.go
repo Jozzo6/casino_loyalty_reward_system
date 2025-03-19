@@ -31,9 +31,9 @@ func (q *Queries) AddPromotion(ctx context.Context, userPromotion types.UserProm
 }
 
 func (q *Queries) ClaimPromotion(ctx context.Context, userPromotionID uuid.UUID) error {
-	query := `UPDATE users_promotions SET claimed = NOW() WHERE id = $1 `
+	query := `UPDATE users_promotions SET claimed = now() WHERE id = $1`
 
-	_, err := q.db.Exec(ctx, query, &userPromotionID)
+	_, err := q.db.Exec(ctx, query, userPromotionID)
 
 	return err
 }
