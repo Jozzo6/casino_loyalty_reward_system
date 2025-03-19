@@ -78,7 +78,7 @@ func TestAddPromotion(t *testing.T) {
 				},
 				pubsub: &fakes.FakePubSub{
 					PublishStub: func(ctx context.Context, s string, a any) *redis.IntCmd {
-						return nil
+						return &redis.IntCmd{}
 					},
 				},
 			},

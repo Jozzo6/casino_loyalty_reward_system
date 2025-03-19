@@ -1,6 +1,6 @@
 //go:build integration
 
-package postgresdb
+package postgresdb_test
 
 import (
 	"context"
@@ -143,7 +143,7 @@ func truncate() {
 	q := `
 		DELETE FROM users;
 		DELETE FROM promotions;
-		DELETE FROM user_promotions;
+		DELETE FROM users_promotions;
 	`
 	_, err := testDB.Exec(context.Background(), q)
 	if err != nil {
