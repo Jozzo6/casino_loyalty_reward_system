@@ -16,6 +16,8 @@ App will run in 3 separated services `user`, `promotions`, and `notifications`.
 On user registration event will be sent to the `promotions` service from `users` service trough redis. Which will add `Welcome promotion` to the user.
 When any promotion is added to user it will once again send event trough redis from `promotions` service to `notifications` service which will than send notification that user has recived that promotion.
 
+![alt text](image.png)
+
 ### How to run the app debug mode
 
 Running following command it will start database and redis
