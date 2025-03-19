@@ -91,6 +91,17 @@ type FakeUserPromotionProvider struct {
 		result1 []types.UserPromotion
 		result2 error
 	}
+	ListenToRegisterEventStub        func(context.Context) error
+	listenToRegisterEventMutex       sync.RWMutex
+	listenToRegisterEventArgsForCall []struct {
+		arg1 context.Context
+	}
+	listenToRegisterEventReturns struct {
+		result1 error
+	}
+	listenToRegisterEventReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -479,6 +490,67 @@ func (fake *FakeUserPromotionProvider) GetUserPromotionsReturnsOnCall(i int, res
 	}{result1, result2}
 }
 
+func (fake *FakeUserPromotionProvider) ListenToRegisterEvent(arg1 context.Context) error {
+	fake.listenToRegisterEventMutex.Lock()
+	ret, specificReturn := fake.listenToRegisterEventReturnsOnCall[len(fake.listenToRegisterEventArgsForCall)]
+	fake.listenToRegisterEventArgsForCall = append(fake.listenToRegisterEventArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.ListenToRegisterEventStub
+	fakeReturns := fake.listenToRegisterEventReturns
+	fake.recordInvocation("ListenToRegisterEvent", []interface{}{arg1})
+	fake.listenToRegisterEventMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeUserPromotionProvider) ListenToRegisterEventCallCount() int {
+	fake.listenToRegisterEventMutex.RLock()
+	defer fake.listenToRegisterEventMutex.RUnlock()
+	return len(fake.listenToRegisterEventArgsForCall)
+}
+
+func (fake *FakeUserPromotionProvider) ListenToRegisterEventCalls(stub func(context.Context) error) {
+	fake.listenToRegisterEventMutex.Lock()
+	defer fake.listenToRegisterEventMutex.Unlock()
+	fake.ListenToRegisterEventStub = stub
+}
+
+func (fake *FakeUserPromotionProvider) ListenToRegisterEventArgsForCall(i int) context.Context {
+	fake.listenToRegisterEventMutex.RLock()
+	defer fake.listenToRegisterEventMutex.RUnlock()
+	argsForCall := fake.listenToRegisterEventArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeUserPromotionProvider) ListenToRegisterEventReturns(result1 error) {
+	fake.listenToRegisterEventMutex.Lock()
+	defer fake.listenToRegisterEventMutex.Unlock()
+	fake.ListenToRegisterEventStub = nil
+	fake.listenToRegisterEventReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeUserPromotionProvider) ListenToRegisterEventReturnsOnCall(i int, result1 error) {
+	fake.listenToRegisterEventMutex.Lock()
+	defer fake.listenToRegisterEventMutex.Unlock()
+	fake.ListenToRegisterEventStub = nil
+	if fake.listenToRegisterEventReturnsOnCall == nil {
+		fake.listenToRegisterEventReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.listenToRegisterEventReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeUserPromotionProvider) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -494,6 +566,8 @@ func (fake *FakeUserPromotionProvider) Invocations() map[string][][]interface{} 
 	defer fake.getUserPromotionByIDMutex.RUnlock()
 	fake.getUserPromotionsMutex.RLock()
 	defer fake.getUserPromotionsMutex.RUnlock()
+	fake.listenToRegisterEventMutex.RLock()
+	defer fake.listenToRegisterEventMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
