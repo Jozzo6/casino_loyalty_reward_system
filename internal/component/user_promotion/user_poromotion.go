@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type Provider interface {
+type UserPromotionProvider interface {
 	AddPromotion(ctx context.Context, userPromotion types.UserPromotion) (types.UserPromotion, error)
 	AddWelcomePromotion(ctx context.Context, userID uuid.UUID) (types.UserPromotion, error)
 	GetUserPromotions(ctx context.Context, userID uuid.UUID) ([]types.UserPromotion, error)
@@ -25,7 +25,7 @@ type component struct {
 	pubsub     store.PubSub
 }
 
-var _ Provider = (*component)(nil)
+var _ UserPromotionProvider = (*component)(nil)
 
 func New(persistent store.Persistent, pubsub store.PubSub) *component {
 	return &component{
@@ -123,8 +123,6 @@ func (c *component) ClaimPromotion(ctx context.Context, userPromotionID uuid.UUI
 	if err != nil {
 		return err
 	}
-
-	db.UserBalanceUpdate(ctx, user.ID, user.Balance+userPromotion.Promotion.Amount)
 
 	_, err = db.UserBalanceUpdate(ctx, user.ID, userPromotion.Promotion.Amount)
 	return err

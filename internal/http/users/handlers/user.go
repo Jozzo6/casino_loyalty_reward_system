@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/Jozzo6/casino_loyalty_reward_system/internal/component/users"
@@ -10,17 +11,16 @@ import (
 	"github.com/Jozzo6/casino_loyalty_reward_system/internal/types"
 	utils "github.com/Jozzo6/casino_loyalty_reward_system/internal/util"
 
-	"github.com/coder/websocket"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
 type usersRouter struct {
-	component users.Provider
+	component users.UserProvider
 }
 
-func NewAccountsRouter(component users.Provider) *usersRouter {
+func NewAccountsRouter(component users.UserProvider) *usersRouter {
 	return &usersRouter{component: component}
 }
 
@@ -210,7 +210,7 @@ func (ur *usersRouter) DeleteUser() http.HandlerFunc {
 		err = ur.component.DeleteUser(r.Context(), id)
 		if errors.Is(err, pgx.ErrNoRows) {
 			log.Errorf("user with id: %s was not found to be updated: %s", id.String(), err)
-			utils.WriteError(log, w, http.StatusNotFound, err)
+			utils.WriteError(log, w, http.StatusNotFound, fmt.Errorf("user with %s id was not found", id.String()))
 			return
 		}
 		if err != nil {
@@ -252,6 +252,10 @@ func (ur *usersRouter) UpdateBalance() http.HandlerFunc {
 
 		user, err := ur.component.UpdateUserBalance(r.Context(), us, req.Value, req.TransactionType)
 		if err != nil {
+			if errors.Is(err, types.ErrInsufficientBalance) {
+				utils.WriteError(log, w, http.StatusBadRequest, err)
+				return
+			}
 			utils.WriteError(log, w, http.StatusInternalServerError, err)
 			return
 		}
@@ -259,31 +263,4 @@ func (ur *usersRouter) UpdateBalance() http.HandlerFunc {
 		utils.WriteJSON(log, w, http.StatusOK, user)
 
 	}
-}
-
-func (ur *usersRouter) ListenToNotifications(w http.ResponseWriter, r *http.Request) {
-	log := types.GetLoggerFromContext(r.Context())
-
-	user, err := types.GetAccountFromContext(r.Context())
-	if err != nil {
-		log.Errorf("failed to get user from context: %s", err)
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	conn, err := websocket.Accept(w, r, nil)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	conn.CloseRead(r.Context())
-
-	defer conn.CloseNow()
-
-	err = ur.component.ListenToNotifications(r.Context(), conn, user.ID)
-	if err != nil {
-		log.Errorf("failed to listen to notificaitons: %s", err)
-	}
-
 }

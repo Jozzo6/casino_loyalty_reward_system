@@ -14,10 +14,10 @@ import (
 )
 
 type userPromotionsRouter struct {
-	component userpromotion.Provider
+	component userpromotion.UserPromotionProvider
 }
 
-func NewUserPromotionsRouter(component userpromotion.Provider) *userPromotionsRouter {
+func NewUserPromotionsRouter(component userpromotion.UserPromotionProvider) *userPromotionsRouter {
 	return &userPromotionsRouter{component: component}
 }
 

@@ -2,7 +2,6 @@ package users
 
 import (
 	"context"
-	"fmt"
 	"net/mail"
 	"time"
 
@@ -10,13 +9,12 @@ import (
 	"github.com/Jozzo6/casino_loyalty_reward_system/internal/store/redis_pub_sub"
 	"github.com/Jozzo6/casino_loyalty_reward_system/internal/types"
 
-	"github.com/coder/websocket"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Provider interface {
+type UserProvider interface {
 	Register(ctx context.Context, user types.User) (types.User, string, error)
 	Login(ctx context.Context, req types.User) (types.User, string, error)
 	Auth(ctx context.Context, token string, path string, method string) (types.User, error)
@@ -25,7 +23,6 @@ type Provider interface {
 	UpdateUser(ctx context.Context, user types.User) (types.User, error)
 	UpdateUserBalance(ctx context.Context, user types.User, value float64, transacrionType types.TransactionType) (types.User, error)
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
-	ListenToNotifications(ctx context.Context, conn *websocket.Conn, userID uuid.UUID) error
 }
 
 type component struct {
@@ -35,7 +32,7 @@ type component struct {
 	jwtDuration time.Duration
 }
 
-var _ Provider = (*component)(nil)
+var _ UserProvider = (*component)(nil)
 
 func New(persistent store.Persistent, pubsub store.PubSub, jwtKey []byte, jwtDuration time.Duration) *component {
 	return &component{
@@ -163,26 +160,15 @@ func (c *component) UpdateUser(ctx context.Context, user types.User) (types.User
 }
 
 func (c *component) UpdateUserBalance(ctx context.Context, user types.User, value float64, transacrionType types.TransactionType) (types.User, error) {
-	if transacrionType == types.Remove && value > 0 {
+	if transacrionType == types.TransactionTypeRemove && user.Balance-value < 0 {
+		return types.User{}, types.ErrInsufficientBalance
+	}
+
+	if transacrionType == types.TransactionTypeRemove && value > 0 {
 		value = value * -1
 	}
+
 	return c.persistent.UserBalanceUpdate(ctx, user.ID, value)
-}
-
-func (c *component) ListenToNotifications(ctx context.Context, conn *websocket.Conn, userID uuid.UUID) error {
-	sub := c.pubsub.Subscribe(ctx, fmt.Sprintf("%s:%s", redis_pub_sub.NotificationsChannel, userID))
-	defer sub.Close()
-
-	ch := sub.Channel()
-
-	for msg := range ch {
-		err := conn.Write(ctx, websocket.MessageText, []byte(msg.Payload))
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func hashPassword(password string) (string, error) {

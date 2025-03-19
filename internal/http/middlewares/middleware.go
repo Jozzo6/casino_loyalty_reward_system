@@ -23,7 +23,7 @@ func LoggerMiddleware(log *zap.SugaredLogger) func(next http.Handler) http.Handl
 	}
 }
 
-func AuthMiddleware(component users.Provider) func(next http.Handler) http.Handler {
+func AuthMiddleware(component users.UserProvider) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
@@ -40,7 +40,7 @@ func AuthMiddleware(component users.Provider) func(next http.Handler) http.Handl
 			if len(parts) != 2 {
 				utils.WriteErrorMessage(log, w, http.StatusUnauthorized, "invalid token in header")
 				return
-			} 
+			}
 
 			if parts[0] != "Bearer" {
 				utils.WriteErrorMessage(log, w, http.StatusUnauthorized, "not token bearer")

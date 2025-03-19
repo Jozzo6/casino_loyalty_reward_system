@@ -10,10 +10,10 @@ import (
 )
 
 type notificationsRouter struct {
-	component notifications.Provider
+	component notifications.NotificationProvider
 }
 
-func NewNotificationsRouter(component notifications.Provider) *notificationsRouter {
+func NewNotificationsRouter(component notifications.NotificationProvider) *notificationsRouter {
 	return &notificationsRouter{component: component}
 }
 

@@ -3,6 +3,7 @@ package notifications
 import (
 	"net/http"
 
+	notifications "github.com/Jozzo6/casino_loyalty_reward_system/internal/component/notificaitons"
 	"github.com/Jozzo6/casino_loyalty_reward_system/internal/component/users"
 	"github.com/Jozzo6/casino_loyalty_reward_system/internal/http/middlewares"
 	"github.com/Jozzo6/casino_loyalty_reward_system/internal/http/notifications/handlers"
@@ -29,10 +30,11 @@ func (s *server) routes() http.Handler {
 	r.Use(middlewares.LoggerMiddleware(s.Resource.Log))
 
 	usersComponent := users.New(s.Resource.DB, s.Resource.PubSub, []byte(s.Resource.Config.JWTKey), s.Resource.Config.JWTDuration)
+	notificationComponent := notifications.New(s.Resource.DB, s.Resource.PubSub)
 
 	authMiddleware := middlewares.AuthMiddleware(usersComponent)
 
-	notificationRouter := handlers.NewNotificationsRouter(usersComponent)
+	notificationRouter := handlers.NewNotificationsRouter(notificationComponent)
 
 	r.With(authMiddleware).Route("/api/v1", func(r chi.Router) {
 		r.HandleFunc("/ok", func(w http.ResponseWriter, r *http.Request) {

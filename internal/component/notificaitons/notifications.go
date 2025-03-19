@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type Provider interface {
+type NotificationProvider interface {
 	ListenToNotifications(ctx context.Context, conn *websocket.Conn, userID uuid.UUID) error
 }
 
@@ -20,7 +20,7 @@ type component struct {
 	pubsub     store.PubSub
 }
 
-var _ Provider = (*component)(nil)
+var _ NotificationProvider = (*component)(nil)
 
 func New(persistent store.Persistent, pubsub store.PubSub) *component {
 	return &component{

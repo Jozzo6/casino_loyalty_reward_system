@@ -15,10 +15,10 @@ import (
 )
 
 type promotionsRouter struct {
-	component promotions.Provider
+	component promotions.PromotionProvider
 }
 
-func NewPromotionsRouter(component promotions.Provider) *promotionsRouter {
+func NewPromotionsRouter(component promotions.PromotionProvider) *promotionsRouter {
 	return &promotionsRouter{component: component}
 }
 

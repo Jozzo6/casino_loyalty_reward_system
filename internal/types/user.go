@@ -27,14 +27,14 @@ type UserType int
 
 const (
 	Player UserType = iota
-	Staff 
+	Staff
 )
 
 type TransactionType string
 
 const (
-	Remove TransactionType = "remove"
-	Add    TransactionType = "add"
+	TransactionTypeRemove TransactionType = "remove"
+	TransactionTypeAdd    TransactionType = "add"
 )
 
 type UserPromotion struct {

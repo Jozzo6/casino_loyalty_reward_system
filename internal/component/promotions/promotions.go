@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type Provider interface {
+type PromotionProvider interface {
 	CreatePromotions(ctx context.Context, promotion types.Promotion) (types.Promotion, error)
 	GetPromotions(ctx context.Context) ([]types.Promotion, error)
 	GetPromotionByID(ctx context.Context, ID uuid.UUID) (types.Promotion, error)
@@ -21,7 +21,7 @@ type component struct {
 	persistent store.Persistent
 }
 
-var _ Provider = (*component)(nil)
+var _ PromotionProvider = (*component)(nil)
 
 func New(persistent store.Persistent) *component {
 	return &component{persistent: persistent}
