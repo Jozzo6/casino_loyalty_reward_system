@@ -60,7 +60,7 @@ nginx is used to distribute load through the services that are running.
 
 | Service Name          | URL                               |
 | --------------------- | --------------------------------- |
-| User service          | localhost:80/users/api/v1         |
+| User service          | localhost:80/user/api/v1         |
 | Promotions service    | localhost:80/promotions/api/v1    |
 | Notifications service | localhost:80/notifications/api/v1 |
 
