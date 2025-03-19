@@ -163,7 +163,8 @@ func (c *component) UpdateUserBalance(ctx context.Context, user types.User, valu
 		value = value * -1
 	}
 
-	return c.persistent.UserBalanceUpdate(ctx, user.ID, value)
+	user, err := c.persistent.UserBalanceUpdate(ctx, user.ID, value)
+	return user, err
 }
 
 func hashPassword(password string) (string, error) {

@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/Jozzo6/casino_loyalty_reward_system/internal/component/promotions"
@@ -187,7 +188,7 @@ func (pr *promotionsRouter) DeletePromotion() http.HandlerFunc {
 		err = pr.component.DeletePromotion(r.Context(), id)
 		if errors.Is(err, pgx.ErrNoRows) {
 			log.Errorf("promotion with id: %s was not found to be deleted: %s", id.String(), err)
-			utils.WriteError(log, w, http.StatusNotFound, err)
+			utils.WriteError(log, w, http.StatusNotFound, fmt.Errorf("promotion with %s id was not found", id.String()))
 			return
 		}
 		if err != nil {

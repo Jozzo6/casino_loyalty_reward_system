@@ -378,33 +378,37 @@ func TestClaimPromotion(t *testing.T) {
 			name: "it should claim promotion",
 			fields: fields{
 				persistentStore: &fakes.FakePersistent{
-					GetUserPromotionByIDStub: func(ctx context.Context, u uuid.UUID) (types.UserPromotion, error) {
-						return types.UserPromotion{
-							ID:          ID,
-							UserID:      userID,
-							PromotionID: promotionID,
-							StartDate:   fixedTime,
-							EndDate:     fixedEndTime,
-							Claimed:     nil,
-							Promotion: &types.Promotion{
-								ID:       promotionID,
-								Amount:   10,
-								IsActive: true,
+					WithTxStub: func(ctx context.Context) (store.Persistent, error) {
+						return &fakes.FakePersistent{
+							GetUserPromotionByIDStub: func(ctx context.Context, u uuid.UUID) (types.UserPromotion, error) {
+								return types.UserPromotion{
+									ID:          ID,
+									UserID:      userID,
+									PromotionID: promotionID,
+									StartDate:   time.Now(),
+									EndDate:     time.Date(2026, time.March, 19, 8, 15, 55, 706491000, time.Local),
+									Claimed:     nil,
+									Promotion: &types.Promotion{
+										ID:       promotionID,
+										Amount:   10,
+										IsActive: true,
+									},
+									User: &types.User{ID: userID},
+								}, nil
 							},
-							User: &types.User{ID: userID},
-						}, nil
-					},
-					ClaimPromotionStub: func(ctx context.Context, u uuid.UUID) error {
-						return nil
-					},
-					UserGetByStub: func(ctx context.Context, uf types.UserFilter) (types.User, error) {
-						return types.User{ID: userID, Balance: 10}, nil
-					},
-					UserBalanceUpdateStub: func(ctx context.Context, u uuid.UUID, f float64) (types.User, error) {
-						return types.User{
-							ID:      userID,
-							Balance: 20,
-						}, nil
+							ClaimPromotionStub: func(ctx context.Context, u uuid.UUID) error {
+								return nil
+							},
+							UserGetByStub: func(ctx context.Context, uf types.UserFilter) (types.User, error) {
+								return types.User{ID: userID, Balance: 10}, nil
+							},
+							UserBalanceUpdateStub: func(ctx context.Context, u uuid.UUID, f float64) (types.User, error) {
+								return types.User{
+									ID:      userID,
+									Balance: 20,
+								}, nil
+							},
+						}, err
 					},
 				},
 				tester: &fakes.FakeUserPromotionProvider{
@@ -419,34 +423,38 @@ func TestClaimPromotion(t *testing.T) {
 			},
 		},
 		{
-			name: "it should fail to claim promotion - claimed already",
+			name: "it should fail to claim promotion claimed already",
 			fields: fields{
 				persistentStore: &fakes.FakePersistent{
-					GetUserPromotionByIDStub: func(ctx context.Context, u uuid.UUID) (types.UserPromotion, error) {
-						return types.UserPromotion{
-							ID:          ID,
-							UserID:      userID,
-							PromotionID: promotionID,
-							StartDate:   fixedTime,
-							EndDate:     fixedEndTime,
-							Claimed:     nil,
-							Promotion: &types.Promotion{
-								ID:       promotionID,
-								Amount:   10,
-								IsActive: true,
+					WithTxStub: func(ctx context.Context) (store.Persistent, error) {
+						return &fakes.FakePersistent{
+							GetUserPromotionByIDStub: func(ctx context.Context, u uuid.UUID) (types.UserPromotion, error) {
+								return types.UserPromotion{
+									ID:          ID,
+									UserID:      userID,
+									PromotionID: promotionID,
+									StartDate:   fixedTime,
+									EndDate:     fixedEndTime,
+									Claimed:     &fixedTime,
+									Promotion: &types.Promotion{
+										ID:       promotionID,
+										Amount:   10,
+										IsActive: true,
+									},
+								}, nil
 							},
-						}, nil
-					},
-					ClaimPromotionStub: func(ctx context.Context, u uuid.UUID) error {
-						return nil
-					},
-					UserGetByStub: func(ctx context.Context, uf types.UserFilter) (types.User, error) {
-						return types.User{ID: userID, Balance: 10}, nil
-					},
-					UserBalanceUpdateStub: func(ctx context.Context, u uuid.UUID, f float64) (types.User, error) {
-						return types.User{
-							ID:      userID,
-							Balance: 20,
+							ClaimPromotionStub: func(ctx context.Context, u uuid.UUID) error {
+								return nil
+							},
+							UserGetByStub: func(ctx context.Context, uf types.UserFilter) (types.User, error) {
+								return types.User{ID: userID, Balance: 10}, nil
+							},
+							UserBalanceUpdateStub: func(ctx context.Context, u uuid.UUID, f float64) (types.User, error) {
+								return types.User{
+									ID:      userID,
+									Balance: 20,
+								}, nil
+							},
 						}, nil
 					},
 				},
@@ -463,34 +471,38 @@ func TestClaimPromotion(t *testing.T) {
 			expectedError: types.ErrPromotionClaimed,
 		},
 		{
-			name: "it should fail to claim promotion - promotion not active",
+			name: "it should fail to claim promotion  promotion not active",
 			fields: fields{
 				persistentStore: &fakes.FakePersistent{
-					GetUserPromotionByIDStub: func(ctx context.Context, u uuid.UUID) (types.UserPromotion, error) {
-						return types.UserPromotion{
-							ID:          ID,
-							UserID:      userID,
-							PromotionID: promotionID,
-							StartDate:   fixedTime,
-							EndDate:     fixedEndTime,
-							Claimed:     nil,
-							Promotion: &types.Promotion{
-								ID:       promotionID,
-								Amount:   10,
-								IsActive: true,
+					WithTxStub: func(ctx context.Context) (store.Persistent, error) {
+						return &fakes.FakePersistent{
+							GetUserPromotionByIDStub: func(ctx context.Context, u uuid.UUID) (types.UserPromotion, error) {
+								return types.UserPromotion{
+									ID:          ID,
+									UserID:      userID,
+									PromotionID: promotionID,
+									StartDate:   fixedTime,
+									EndDate:     fixedEndTime,
+									Claimed:     nil,
+									Promotion: &types.Promotion{
+										ID:       promotionID,
+										Amount:   10,
+										IsActive: false,
+									},
+								}, nil
 							},
-						}, nil
-					},
-					ClaimPromotionStub: func(ctx context.Context, u uuid.UUID) error {
-						return nil
-					},
-					UserGetByStub: func(ctx context.Context, uf types.UserFilter) (types.User, error) {
-						return types.User{ID: userID, Balance: 10}, nil
-					},
-					UserBalanceUpdateStub: func(ctx context.Context, u uuid.UUID, f float64) (types.User, error) {
-						return types.User{
-							ID:      userID,
-							Balance: 20,
+							ClaimPromotionStub: func(ctx context.Context, u uuid.UUID) error {
+								return nil
+							},
+							UserGetByStub: func(ctx context.Context, uf types.UserFilter) (types.User, error) {
+								return types.User{ID: userID, Balance: 10}, nil
+							},
+							UserBalanceUpdateStub: func(ctx context.Context, u uuid.UUID, f float64) (types.User, error) {
+								return types.User{
+									ID:      userID,
+									Balance: 20,
+								}, nil
+							},
 						}, nil
 					},
 				},
@@ -507,34 +519,38 @@ func TestClaimPromotion(t *testing.T) {
 			expectedError: types.ErrPromotionNoLongerActive,
 		},
 		{
-			name: "it should fail to claim promotion - not started",
+			name: "it should fail to claim promotion not started",
 			fields: fields{
 				persistentStore: &fakes.FakePersistent{
-					GetUserPromotionByIDStub: func(ctx context.Context, u uuid.UUID) (types.UserPromotion, error) {
-						return types.UserPromotion{
-							ID:          ID,
-							UserID:      userID,
-							PromotionID: promotionID,
-							StartDate:   fixedTime,
-							EndDate:     fixedEndTime,
-							Claimed:     nil,
-							Promotion: &types.Promotion{
-								ID:       promotionID,
-								Amount:   10,
-								IsActive: true,
+					WithTxStub: func(ctx context.Context) (store.Persistent, error) {
+						return &fakes.FakePersistent{
+							GetUserPromotionByIDStub: func(ctx context.Context, u uuid.UUID) (types.UserPromotion, error) {
+								return types.UserPromotion{
+									ID:          ID,
+									UserID:      userID,
+									PromotionID: promotionID,
+									StartDate:   time.Date(3000, time.March, 19, 8, 15, 55, 706491000, time.Local),
+									EndDate:     time.Date(3001, time.March, 19, 8, 15, 55, 706491000, time.Local),
+									Claimed:     nil,
+									Promotion: &types.Promotion{
+										ID:       promotionID,
+										Amount:   10,
+										IsActive: true,
+									},
+								}, nil
 							},
-						}, nil
-					},
-					ClaimPromotionStub: func(ctx context.Context, u uuid.UUID) error {
-						return nil
-					},
-					UserGetByStub: func(ctx context.Context, uf types.UserFilter) (types.User, error) {
-						return types.User{ID: userID, Balance: 10}, nil
-					},
-					UserBalanceUpdateStub: func(ctx context.Context, u uuid.UUID, f float64) (types.User, error) {
-						return types.User{
-							ID:      userID,
-							Balance: 20,
+							ClaimPromotionStub: func(ctx context.Context, u uuid.UUID) error {
+								return nil
+							},
+							UserGetByStub: func(ctx context.Context, uf types.UserFilter) (types.User, error) {
+								return types.User{ID: userID, Balance: 10}, nil
+							},
+							UserBalanceUpdateStub: func(ctx context.Context, u uuid.UUID, f float64) (types.User, error) {
+								return types.User{
+									ID:      userID,
+									Balance: 20,
+								}, nil
+							},
 						}, nil
 					},
 				},
@@ -551,39 +567,44 @@ func TestClaimPromotion(t *testing.T) {
 			expectedError: types.ErrPromotionNotStarted,
 		},
 		{
-			name: "it should fail to claim promotion - expired",
+			name: "it should fail to claim promotion expired",
 			fields: fields{
 				persistentStore: &fakes.FakePersistent{
-					GetUserPromotionByIDStub: func(ctx context.Context, u uuid.UUID) (types.UserPromotion, error) {
-						return types.UserPromotion{
-							ID:          ID,
-							UserID:      userID,
-							PromotionID: promotionID,
-							StartDate:   fixedTime,
-							EndDate:     fixedEndTime,
-							Claimed:     nil,
-							Promotion: &types.Promotion{
-								ID:       promotionID,
-								Amount:   10,
-								IsActive: true,
+					WithTxStub: func(ctx context.Context) (store.Persistent, error) {
+						return &fakes.FakePersistent{
+							GetUserPromotionByIDStub: func(ctx context.Context, u uuid.UUID) (types.UserPromotion, error) {
+								return types.UserPromotion{
+									ID:          ID,
+									UserID:      userID,
+									PromotionID: promotionID,
+									StartDate:   time.Date(2025, time.March, 17, 8, 15, 55, 706491000, time.Local),
+									EndDate:     time.Date(2025, time.March, 18, 8, 15, 55, 706491000, time.Local),
+									Claimed:     nil,
+									Promotion: &types.Promotion{
+										ID:       promotionID,
+										Amount:   10,
+										IsActive: true,
+									},
+									User: &types.User{
+										ID: userID,
+									},
+								}, nil
 							},
-							User: &types.User{
-								ID: userID,
+							ClaimPromotionStub: func(ctx context.Context, u uuid.UUID) error {
+								return nil
+							},
+							UserGetByStub: func(ctx context.Context, uf types.UserFilter) (types.User, error) {
+								return types.User{ID: userID, Balance: 10}, nil
+							},
+							UserBalanceUpdateStub: func(ctx context.Context, u uuid.UUID, f float64) (types.User, error) {
+								return types.User{
+									ID:      userID,
+									Balance: 20,
+								}, nil
 							},
 						}, nil
 					},
-					ClaimPromotionStub: func(ctx context.Context, u uuid.UUID) error {
-						return nil
-					},
-					UserGetByStub: func(ctx context.Context, uf types.UserFilter) (types.User, error) {
-						return types.User{ID: userID, Balance: 10}, nil
-					},
-					UserBalanceUpdateStub: func(ctx context.Context, u uuid.UUID, f float64) (types.User, error) {
-						return types.User{
-							ID:      userID,
-							Balance: 20,
-						}, nil
-					},
+
 				},
 				tester: &fakes.FakeUserPromotionProvider{
 					ClaimPromotionStub: func(ctx context.Context, u uuid.UUID) error {

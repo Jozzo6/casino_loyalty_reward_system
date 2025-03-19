@@ -300,7 +300,7 @@ func TestGetUsers(t *testing.T) {
 		expectedOutput string
 	}{
 		{
-			name: "it should return the 2 users",
+			name: "it should return the user",
 			fields: fields{
 				userProvider: &fakes.FakeUserProvider{
 					GetUsersStub: func(ctx context.Context) ([]types.User, error) {

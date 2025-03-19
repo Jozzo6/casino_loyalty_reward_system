@@ -190,12 +190,11 @@ func TestLogin(t *testing.T) {
 	require.NoError(t, err)
 
 	user := types.User{
-		ID:       ID,
-		Name:     "John",
-		Email:    "john@example.com",
-		Password: "password",
-		Role:     1,
-		Balance:  0,
+		ID:      ID,
+		Name:    "John",
+		Email:   "john@example.com",
+		Role:    1,
+		Balance: 0,
 	}
 
 	tests := []struct {
@@ -211,7 +210,14 @@ func TestLogin(t *testing.T) {
 			fields: fields{
 				persistentStore: &fakes.FakePersistent{
 					UserGetByStub: func(ctx context.Context, uf types.UserFilter) (types.User, error) {
-						return user, nil
+						return types.User{
+							ID:       ID,
+							Name:     "John",
+							Email:    "john@example.com",
+							Password: "$2a$10$slqGr93DMCar8kc6BkCY0.EeZ3/a70D7bq1/gD25pcSw2k0c9d2gW",
+							Role:     1,
+							Balance:  0,
+						}, nil
 					},
 				},
 				tester: &fakes.FakeUserProvider{
@@ -232,7 +238,7 @@ func TestLogin(t *testing.T) {
 			name: "it should fail user not found",
 			fields: fields{
 				persistentStore: &fakes.FakePersistent{
-					UserCreateStub: func(ctx context.Context, u types.User) (types.User, error) {
+					UserGetByStub: func(ctx context.Context, uf types.UserFilter) (types.User, error) {
 						return types.User{}, pgx.ErrNoRows
 					},
 				},
@@ -245,7 +251,7 @@ func TestLogin(t *testing.T) {
 				Password: "password",
 			}},
 			expectedOutput: types.User{},
-			expectedError: types.ErrUnauthorized,
+			expectedError:  types.ErrUnauthorized,
 		},
 	}
 
@@ -613,12 +619,12 @@ func TestUpdateUserBalance(t *testing.T) {
 			name: "it should fail not found",
 			fields: fields{
 				persistentStore: &fakes.FakePersistent{
-					UserUpdateStub: func(ctx context.Context, u types.User) (types.User, error) {
+					UserBalanceUpdateStub: func(ctx context.Context, u uuid.UUID, f float64) (types.User, error) {
 						return types.User{}, pgx.ErrNoRows
 					},
 				},
 				tester: &fakes.FakeUserProvider{
-					UpdateUserStub: func(ctx context.Context, u types.User) (types.User, error) {
+					UpdateUserBalanceStub: func(ctx context.Context, u types.User, f float64, tt types.TransactionType) (types.User, error) {
 						return types.User{}, pgx.ErrNoRows
 					},
 				},
